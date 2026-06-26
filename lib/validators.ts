@@ -89,6 +89,7 @@ export const markInvitationsSentSchema = z.object({
 
 export const sendTableInvitationSchema = whatsappRecipientSchema.extend({
   guestId: z.string().min(1),
+  resend: z.boolean().optional(),
 });
 
 export const sendTableInvitationBulkSchema = z.object({

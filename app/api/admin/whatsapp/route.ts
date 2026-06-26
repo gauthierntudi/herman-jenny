@@ -165,7 +165,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: "Destinataire invalide" });
     }
 
-    const result = await sendTableInvitationForGuest(parsed.data.guestId);
+    const result = await sendTableInvitationForGuest(parsed.data.guestId, {
+      resend: parsed.data.resend,
+    });
 
     if (result.success) {
       return NextResponse.json({ success: true, guestId: result.guestId });
@@ -195,7 +197,7 @@ export async function POST(request: Request) {
         continue;
       }
 
-      const result = await sendTableInvitationForGuest(r.guestId);
+      const result = await sendTableInvitationForGuest(r.guestId, { resend: r.resend });
 
       if (result.success) {
         sent++;

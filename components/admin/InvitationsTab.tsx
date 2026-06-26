@@ -64,6 +64,10 @@ function isEligible(row: AssignedGuestRow) {
   return !row.invitationSent && !row.guest.sendBlocked;
 }
 
+function isSelectable(row: AssignedGuestRow) {
+  return !row.guest.sendBlocked;
+}
+
 export default function InvitationsTab({ tables, onInvitationSent, onInvitationsSent }: Props) {
   const [search, setSearch] = useState("");
   const [tableFilter, setTableFilter] = useState("");
@@ -112,9 +116,10 @@ export default function InvitationsTab({ tables, onInvitationSent, onInvitations
   const rangeStart = filteredRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const rangeEnd = Math.min(currentPage * pageSize, filteredRows.length);
 
+  const selectableOnPage = paginatedRows.filter(isSelectable);
   const allSelected =
-    paginatedRows.length > 0 &&
-    paginatedRows.every((row) => selected.has(row.guest.phone) && isEligible(row));
+    selectableOnPage.length > 0 &&
+    selectableOnPage.every((row) => selected.has(row.guest.phone));
 
   const assignedPeople = sumPeopleCount(assignedRows.map((r) => r.guest));
   const sentPeople = sumPeopleCount(assignedRows.filter((r) => r.invitationSent).map((r) => r.guest));
@@ -149,20 +154,20 @@ export default function InvitationsTab({ tables, onInvitationSent, onInvitations
   const toggleAll = () => {
     const next = new Set(selected);
     if (allSelected) {
-      paginatedRows.forEach((row) => next.delete(row.guest.phone));
+      selectableOnPage.forEach((row) => next.delete(row.guest.phone));
     } else {
-      paginatedRows.forEach((row) => {
-        if (isEligible(row)) next.add(row.guest.phone);
-      });
+      selectableOnPage.forEach((row) => next.add(row.guest.phone));
     }
     setSelected(next);
   };
 
   const sendOne = async (row: AssignedGuestRow) => {
     const ok = await confirm({
-      title: "Envoyer l'invitation",
-      message: `Envoyer l'invitation PDF (nom, QR) à ${row.guest.name} ?`,
-      confirmLabel: "Envoyer",
+      title: row.invitationSent ? "Renvoyer l'invitation" : "Envoyer l'invitation",
+      message: row.invitationSent
+        ? `Renvoyer l'invitation PDF à ${row.guest.name} ?`
+        : `Envoyer l'invitation PDF (nom, QR) à ${row.guest.name} ?`,
+      confirmLabel: row.invitationSent ? "Renvoyer" : "Envoyer",
       variant: "whatsapp",
       icon: MessageCircle,
     });
@@ -176,10 +181,13 @@ export default function InvitationsTab({ tables, onInvitationSent, onInvitations
           name: row.guest.name,
           token: row.guest.token,
           genre: row.guest.genre,
+          resend: row.invitationSent,
         }).then(assertSuccess),
         {
-          pending: `Envoi à ${row.guest.name}…`,
-          success: `Invitation envoyée à ${row.guest.name}`,
+          pending: row.invitationSent ? `Renvoi à ${row.guest.name}…` : `Envoi à ${row.guest.name}…`,
+          success: row.invitationSent
+            ? `Invitation renvoyée à ${row.guest.name}`
+            : `Invitation envoyée à ${row.guest.name}`,
         }
       );
       onInvitationSent(row.guestId);
@@ -189,13 +197,18 @@ export default function InvitationsTab({ tables, onInvitationSent, onInvitations
   };
 
   const sendSelected = async () => {
-    const rows = assignedRows.filter((row) => selected.has(row.guest.phone) && isEligible(row));
+    const rows = assignedRows.filter((row) => selected.has(row.guest.phone) && isSelectable(row));
     if (!rows.length) return;
 
+    const resendCount = rows.filter((row) => row.invitationSent).length;
+
     const ok = await confirm({
-      title: "Envoi groupé",
+      title: resendCount > 0 ? "Envoi / renvoi groupé" : "Envoi groupé",
       message: `Envoyer l'invitation PDF à ${rows.length} invité(s) ?`,
-      detail: "Chaque message inclut un PDF personnalisé (nom, QR code) via Twilio.",
+      detail:
+        resendCount > 0
+          ? `${resendCount} renvoi(s) inclus. Chaque message inclut un PDF personnalisé (nom, QR code) via Twilio.`
+          : "Chaque message inclut un PDF personnalisé (nom, QR code) via Twilio.",
       confirmLabel: `Envoyer (${rows.length})`,
       variant: "whatsapp",
       icon: MessageCircle,
@@ -212,6 +225,7 @@ export default function InvitationsTab({ tables, onInvitationSent, onInvitations
             name: row.guest.name,
             token: row.guest.token,
             genre: row.guest.genre,
+            resend: row.invitationSent,
           })),
         }).then(assertSuccess),
         {
@@ -311,7 +325,7 @@ export default function InvitationsTab({ tables, onInvitationSent, onInvitations
                   </tr>
                 ) : (
                   paginatedRows.map((row) => {
-                    const disabledSend = row.invitationSent || row.guest.sendBlocked;
+                    const disabledSend = row.guest.sendBlocked;
                     return (
                       <tr key={row.guestId}>
                         <td>
@@ -359,7 +373,7 @@ export default function InvitationsTab({ tables, onInvitationSent, onInvitations
                               row.guest.sendBlocked
                                 ? "Envoi désactivé"
                                 : row.invitationSent
-                                  ? "Déjà envoyé"
+                                  ? "Renvoyer l'invitation de table"
                                   : "Envoyer l'invitation de table"
                             }
                           >

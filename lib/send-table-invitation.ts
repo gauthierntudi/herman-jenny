@@ -8,7 +8,10 @@ export type SendTableInvitationResult = {
   message?: string;
 };
 
-export async function sendTableInvitationForGuest(guestId: string): Promise<SendTableInvitationResult> {
+export async function sendTableInvitationForGuest(
+  guestId: string,
+  options?: { resend?: boolean }
+): Promise<SendTableInvitationResult> {
   const assignment = await prisma.tableAssignment.findUnique({
     where: { guestId },
     include: { guest: true, table: true },
@@ -24,7 +27,7 @@ export async function sendTableInvitationForGuest(guestId: string): Promise<Send
     return { success: false, guestId, message: "Envoi désactivé pour cet invité" };
   }
 
-  if (assignment.invitationSent) {
+  if (assignment.invitationSent && !options?.resend) {
     return { success: false, guestId, message: "Invitation déjà envoyée" };
   }
 
