@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum GuestStatus {
+  PENDING
+  ACTIVE
+}
+
+model Guest {
+  id                 String      @id @default(cuid())
+  phone              String      @unique
+  name               String
+  genre              String      @default("Cher")
+  token              String      @unique
+  deviceId           String?     @unique @map("device_id")
+  status             GuestStatus @default(PENDING)
+  statusSend         Boolean     @default(false) @map("status_send")
+  sendBlocked        Boolean     @default(false) @map("send_blocked")
+  availability       Boolean?
+  outsideUsa         Boolean?    @map("outside_usa")
+  peopleCount        Int?        @map("people_count")
+  needInvitation     Boolean     @default(false) @map("need_invitation")
+  needVisaAssistance Boolean     @default(false) @map("need_visa_assistance")
+  needHotelBooking   Boolean     @default(false) @map("need_hotel_booking")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  updatedAt          DateTime    @updatedAt @map("updated_at")
+  tableAssignment    TableAssignment?
+
+  @@map("guests")
+}
+
+model WeddingTable {
+  id          String            @id @default(cuid())
+  name        String
+  seatCount   Int               @map("seat_count")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  assignments TableAssignment[]
+
+  @@map("wedding_tables")
+}
+
+model TableAssignment {
+  id              String       @id @default(cuid())
+  tableId         String       @map("table_id")
+  guestId         String       @unique @map("guest_id")
+  invitationSent  Boolean      @default(false) @map("invitation_sent")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  table           WeddingTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  guest           Guest        @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@map("table_assignments")
+}

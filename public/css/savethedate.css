@@ -1,0 +1,945 @@
+    <style>
+/* ... Styles existants ... */
+
+/* Compte à rebours Styles */
+.countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/img/hj-03.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: 10002; /* Au-dessus de tout */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+}
+
+.countdown-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Overlay sombre pour lisibilité */
+    z-index: -1;
+}
+
+.countdown-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.countdown-number {
+    font-family: var(--font-heading);
+    font-size: 140px;
+    font-weight: 700;
+    animation: pulse 1s infinite;
+    line-height: 1;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.countdown-text {
+    font-family: var(--font-body);
+    font-size: 18px;
+    margin-top: 10px;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 500;
+}
+
+.heart-pulse {
+    animation: pulse 1.2s infinite;
+    transform-origin: center;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes cursorBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Styles Bottom Sheet Modal */
+.bottom-sheet-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10100;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.bottom-sheet-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.bottom-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 30px 24px 40px;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 10101;
+    transition: bottom 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.bottom-sheet.active {
+    bottom: 0;
+}
+
+.bs-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    background: #fff5f5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.bs-icon {
+    font-size: 32px;
+    color: #ff4b4b;
+}
+
+.bs-title {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #1c1c1e;
+}
+
+.bs-message {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.5;
+    max-width: 300px;
+}
+
+.bs-button {
+    width: 100%;
+    padding: 16px;
+    background: #f2f2f7;
+    color: #1c1c1e;
+    border: none;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.bs-button:hover {
+    background: #e5e5ea;
+}
+
+/* Desktop: Centrer comme une modal */
+@media (min-width: 768px) {
+    .bottom-sheet {
+        bottom: 50% !important;
+        left: 50%;
+        transform: translate(-50%, 50%) scale(0.9);
+        width: 400px;
+        border-radius: 24px;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+        pointer-events: none;
+    }
+
+    .bottom-sheet.active {
+        opacity: 1;
+        transform: translate(-50%, 50%) scale(1);
+        pointer-events: auto;
+    }
+}
+
+@font-face {
+    font-family: 'GT Super';
+    src: url('/assets/fonts/GT-Super-WT-Super.3397811e.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Actief Grotesque';
+    src: url('/assets/fonts/ActiefGrotesque_W_Regular.458577e8.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Loader Styles */
+.loader-wrapper {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+.loader-wrapper.visible {
+    display: flex;
+    opacity: 1;
+}
+.premium-loader {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: #ffdf4b;
+    animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+    </style>
+
+    <style>
+:root {
+    --primary-color: #fed202;
+    --primary-dark: #e0bb00;
+    --bg-color: #f2f2f7;
+    --card-bg: #ffffff;
+    --text-color: #1c1c1e;
+    --text-secondary: #8e8e93;
+    --input-bg: #f2f2f7;
+    --radius-xl: 24px;
+    --radius-l: 16px;
+    --radius-m: 12px;
+    --font-heading: 'GT Super', serif;
+    --font-body: 'Actief Grotesque', sans-serif;
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-body);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden; /* Empêche le scroll élastique sur iOS */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height pour mobile */
+    position: relative;
+    background: var(--bg-color);
+    overflow-y: auto;
+}
+
+/* Vue Login */
+.login-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Espacement entre le logo et le reste */
+    padding: 24px;
+    padding-top: max(40px, env(safe-area-inset-top));
+    animation: fadeIn 0.5s ease-out;
+    background-image: url('/img/vhj-02.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+/* Overlay pour le login */
+.login-view::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8); /* Overlay noir 0.8 */
+    z-index: 0; /* Remis à 0 car le z-index 1 cachait le contenu si le contenu n'a pas de position relative explicite sur tous ses parents */
+}
+
+.login-view > * {
+    position: relative;
+    z-index: 2; /* On s'assure que le contenu direct est bien au-dessus */
+}
+
+/* Force le z-index sur les éléments critiques */
+.login-desktop-wrapper-content, 
+.login-bottom-content,
+.brand-area {
+    position: relative;
+    z-index: 2;
+}
+
+.brand-area h1, .brand-area p, .brand-area i {
+    color: white !important;
+    text-shadow: none; /* Suppression des ombres */
+}
+
+/* Ajustement du formulaire pour qu'il s'intègre mieux sur fond sombre */
+.auth-card-container {
+     /* Wrapper pour cibler plus spécifiquement si besoin */
+}
+
+/* Container principal login pour desktop */
+.login-desktop-wrapper-content {
+    display: contents; /* Sur mobile, on enlève le wrapper visuel */
+}
+
+.desktop-only {
+    display: none;
+}
+
+.form-label {
+    color: rgba(255, 255, 255, 0.8); /* Labels en blanc cassé */
+}
+
+/* Style des inputs sur fond sombre */
+input.form-control {
+    background-color: #ffffff; /* Fond blanc opaque */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #1c1c1e; /* Texte sombre standard */
+}
+
+input.form-control:focus {
+    background-color: #ffffff;
+    border-color: var(--primary-color);
+    color: #1c1c1e;
+}
+
+/* Placeholder couleur */
+input.form-control::placeholder {
+    color: #8e8e93;
+}
+
+/* Ajustement du drapeau intl-tel-input pour le mode sombre */
+.iti__selected-dial-code {
+    color: #1c1c1e; /* Code pays en noir car sur fond blanc */
+}
+
+/* Style spécifique pour que le drapeau et le code soient bien alignés */
+.iti {
+    width: 100%;
+    color: #000;
+}
+
+/* Amélioration de la liste déroulante des pays */
+.iti__country-list {
+    z-index: 999 !important; /* Pour passer au-dessus de tout */
+    width: 100% !important; /* Force la largeur à 100% du parent (le conteneur input) */
+    max-width: none !important; /* Enlève la limite */
+    white-space: normal; /* Permet aux longs noms de revenir à la ligne */
+    background-color: white;
+    color: #333;
+    /* Scrollbar styling */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #888 #f1f1f1; /* Firefox */
+}
+
+/* Webkit scrollbar (Chrome, Safari) */
+.iti__country-list::-webkit-scrollbar {
+    width: 6px; /* Largeur de la scrollbar */
+    position: absolute;
+    right: 2px; /* Ne fonctionne pas directement sur scrollbar native mais on réduit la largeur */
+}
+
+.iti__country-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.iti__country-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.iti__country-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Style pour la recherche dans la dropdown */
+.iti__search-input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 5px 0;
+}
+
+/* Brand Area Styles */
+.brand-area {
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    flex-grow: 1; /* Prend l'espace disponible */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Logo en haut */
+    align-items: center; /* Centre horizontalement le logo */
+}
+
+/* Conteneur pour titre et form */
+.login-bottom-content {
+    margin-bottom: 20%; /* Remonte un peu du bas */
+}
+
+.auth-card {
+    background: transparent;
+    box-shadow: none;
+    padding: 32px 24px;
+}
+
+.brand-area h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
+    color: white !important;
+}
+
+.brand-area p {
+    font-size: 17px;
+    color: rgba(255,255,255,0.9) !important;
+    margin: 0;
+}
+
+/* Calendar Styles */
+.calendar-view {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    z-index: 10003;
+    overflow-y: auto;
+    padding: 40px 20px 100px; /* Padding bottom augmenté pour le footer */
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.calendar-view.visible {
+    opacity: 1;
+}
+
+.calendar-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    z-index: 10004;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: 1px solid #eee;
+}
+
+.calendar-day.selected {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.calendar-day.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    background: #f9f9f9;
+}
+
+.month-title {
+    text-align: left;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 30px auto 15px;
+    max-width: 400px;
+    font-family: var(--font-heading);
+}
+
+/* Fin Vidéo Overlay - Modifié pour être l'écran final "A bientôt" */
+.end-video-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/img/vhj-01.jpg');
+    background-size: cover;
+    background-position: top center;
+    z-index: 10004;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease-in-out;
+    padding-bottom: 60px;
+}
+
+.end-video-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.end-video-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Dégradé sombre en bas vers transparent en haut */
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
+    z-index: 1;
+}
+
+.end-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+    padding: 20px;
+}
+
+.end-content h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    text-shadow: none; /* Suppression de l'ombre */
+    font-weight: normal; /* Optionnel : souvent plus joli avec les polices serif */
+}
+
+.btn-replay {
+    background: #ffd74b; /* Couleur demandée */
+    border: none;
+    color: #221f20;
+    padding: 12px 30px;
+    border-radius: 15px; /* Radius demandé */
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 24px;
+    transition: all 0.3s;
+    font-family: var(--font-body);
+    box-shadow: 0 4px 15px rgba(255, 215, 75, 0.4);
+}
+
+.btn-replay:hover {
+    background: #a80d1f;
+    transform: scale(1.05);
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Custom Input Style */
+.iti {
+    width: 100%;
+}
+
+.iti__flag-container {
+    border-top-left-radius: var(--radius-m);
+    border-bottom-left-radius: var(--radius-m);
+}
+
+.iti__selected-flag {
+    background-color: transparent;
+}
+
+input.form-control {
+    height: 56px;
+    border-radius: var(--radius-m);
+    border: 1px solid transparent;
+    background-color: var(--input-bg);
+    font-size: 19px;
+    font-weight: 500;
+    padding-left: 16px; /* Sera ajusté par le plugin */
+    width: 100%;
+    box-shadow: none;
+    transition: all 0.2s;
+    color: var(--text-color);
+}
+
+input.form-control:focus {
+    background-color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(254, 210, 2, 0.18);
+}
+
+.btn-submit {
+    width: 100%;
+    height: 56px;
+    background-color: var(--primary-color);
+    color: #221f20;
+    border: none;
+    border-radius: var(--radius-l);
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, background-color 0.2s;
+    box-shadow: 0 10px 20px rgba(254, 210, 2, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-submit:active {
+    transform: scale(0.96);
+    background-color: var(--primary-dark);
+}
+
+.error-message {
+    background-color: #ffe5e5;
+    color: #d32f2f;
+    padding: 12px;
+    border-radius: var(--radius-m);
+    font-size: 14px;
+    margin-top: 16px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Vue Vidéo */
+.video-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    opacity: 0; /* Par défaut caché */
+    transition: opacity 1s;
+}
+
+.slideshow-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 9999;
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    overflow: hidden;
+}
+
+.slideshow-view.active {
+    opacity: 1;
+}
+
+.slideshow-swiper,
+.slideshow-swiper .swiper-wrapper,
+.slideshow-swiper .swiper-slide {
+    width: 100%;
+    height: 100%;
+}
+
+.slideshow-swiper .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1.06);
+    will-change: transform;
+}
+
+.slideshow-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: max(26px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom));
+    opacity: 0;
+    transition: opacity 700ms ease;
+}
+
+.slideshow-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.45) 100%);
+    z-index: -1;
+}
+
+.slideshow-view.show-overlay .slideshow-overlay {
+    opacity: 1;
+}
+
+.slideshow-top {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(42px, 10vw, 78px);
+    letter-spacing: 0.02em;
+    color: #fff;
+    text-align: center;
+}
+
+.slideshow-bottom {
+    text-align: center;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 10px;
+}
+
+.slideshow-names {
+    font-family: var(--font-heading);
+    font-size: clamp(28px, 7vw, 52px);
+    line-height: 1.1;
+}
+
+.slideshow-names .amp {
+    color: #fbd44c;
+}
+
+.slideshow-date {
+    font-family: var(--font-body);
+    font-size: clamp(16px, 3.4vw, 20px);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slideshow-top,
+    .slideshow-names,
+    .slideshow-date {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+.video-view.active {
+    opacity: 1;
+}
+
+.video-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-container {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    aspect-ratio: auto;
+}
+
+.video-container iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+}
+
+.video-overlay-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: white;
+    padding: 60px 20px 30px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
+    pointer-events: none;
+    padding-bottom: max(30px, env(safe-area-inset-bottom));
+}
+
+.video-overlay-info h2 {
+    font-size: 24px;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.video-overlay-info p {
+    font-size: 16px;
+    margin: 0;
+    opacity: 0.9;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile adjustments (par défaut, pour petits écrans) */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 0;
+    }
+    .brand-area {
+        margin-top: 20px;
+        margin-bottom: 60px;
+    }
+}
+
+/* Tablette et Desktop */
+@media (min-width: 768px) {
+    /* Login View */
+    .login-view {
+        align-items: center; /* Centre horizontalement le contenu */
+        justify-content: center; /* Centre verticalement */
+        padding: 40px;
+        background-position: center;
+        /* Optionnel : image fixe pour effet parallaxe léger */
+        background-attachment: fixed;
+    }
+
+    /* Container principal login pour desktop */
+    .login-desktop-wrapper-content {
+        background: rgba(0, 0, 0, 0.6); /* Fond semi-transparent pour détacher du fond */
+        backdrop-filter: blur(10px);
+        padding: 60px;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        width: 100%;
+        max-width: 500px; /* Largeur max contenue */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .mobile-only {
+        display: none !important;
+    }
+
+    .desktop-only {
+        display: flex !important;
+    }
+
+    .login-bottom-content {
+        width: 100%;
+        margin-bottom: 0; /* On enlève la marge de 20% du mobile */
+    }
+
+    .login-bottom-content .brand-area {
+        margin-bottom: 30px !important;
+    }
+
+    .auth-card {
+        padding: 0;
+        margin-top: 0;
+    }
+
+    /* Vidéo View Desktop */
+    .video-container {
+        /* Sur grand écran, on limite la largeur pour ne pas avoir une vidéo géante déformée ou trop haute */
+        max-width: 1200px;
+        max-height: 90vh; /* Hauteur max */
+        aspect-ratio: 16/9; /* Ratio forcé pour éviter le plein écran déformé */
+        height: auto;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    }
+    
+    .video-wrapper {
+        padding: 40px;
+    }
+
+    /* Overlay Fin Vidéo Desktop */
+    .end-video-overlay {
+        background-position: center; /* Centré sur desktop */
+        justify-content: center; /* Centré verticalement */
+        padding-bottom: 0;
+    }
+    
+    .end-content {
+        background: rgba(0, 0, 0, 0.7);
+        padding: 40px 60px;
+        border-radius: 20px;
+        backdrop-filter: blur(5px);
+    }
+
+    .btn-replay {
+        margin-top: 30px;
+    }
+}

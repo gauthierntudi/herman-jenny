@@ -1,0 +1,43 @@
+{
+  "name": "mariage-herman",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.9.1",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "@prisma/client": "^6.9.0",
+    "lucide-react": "^1.21.0",
+    "next": "^15.3.3",
+    "next-auth": "^5.0.0-beta.28",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-toastify": "^11.1.0",
+    "twilio": "^5.7.0",
+    "zod": "^3.25.56"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "prisma": "^6.9.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

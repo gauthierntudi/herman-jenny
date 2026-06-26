@@ -1,0 +1,6 @@
+.tp-team-item img {
+  transition: filter 0.3s ease;
+}
+.tp-team-item:hover img {
+  filter: grayscale(0) !important;
+}

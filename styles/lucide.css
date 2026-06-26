@@ -1,0 +1,23 @@
+.lucide-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.lucide-spin {
+  animation: lucide-spin 0.85s linear infinite;
+}
+
+@keyframes lucide-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* WhatsApp-style accent when using MessageCircle as messenger icon */
+.lucide-icon-wa {
+  color: #059669;
+}
