@@ -34,7 +34,7 @@ export function toastPromise<T>(promise: Promise<T>, messages: ToastPromiseMessa
       },
     },
     darkToast
-  );
+  ) as Promise<T>;
 }
 
 export function assertSuccess<T extends { success: boolean; message?: string }>(data: T): T {

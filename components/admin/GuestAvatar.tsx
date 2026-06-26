@@ -21,12 +21,13 @@ export function avatarInitial(name: string): string {
   if (!trimmed) return "?";
 
   const words = trimmed.match(/\p{L}+/gu) ?? [];
-  if (words.length >= 2) {
-    return (words[0][0] + words[1][0]).toUpperCase();
+  const first = words[0];
+  const second = words[1];
+  if (first && second) {
+    return (first[0] + second[0]).toUpperCase();
   }
-  if (words.length === 1) {
-    const w = words[0];
-    return w.length >= 2 ? w.slice(0, 2).toUpperCase() : w[0].toUpperCase();
+  if (first) {
+    return first.length >= 2 ? first.slice(0, 2).toUpperCase() : first[0]?.toUpperCase() ?? "?";
   }
 
   const digits = trimmed.match(/\d/g);
