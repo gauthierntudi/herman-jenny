@@ -1,95 +1,107 @@
 (function ($) {
     "use strict";
 
-    var windowOn = $(window);
+    function runPreloader() {
+        var $loading = $("#loading");
+        if (!$loading.length || $loading.data("preloader-done")) return;
+        $loading.data("preloader-done", true);
 
-    windowOn.on('load', function () {
-        // Fallback for missing libraries
-        var hasGSAP = (typeof gsap !== "undefined");
-        var hasSplitText = (typeof SplitText !== "undefined");
+        var hasGSAP = typeof gsap !== "undefined";
+        var hasSplitText = typeof SplitText !== "undefined";
 
-        if (hasGSAP && $('.preloader-text-line').length > 0) {
+        if (hasGSAP && $(".preloader-text-line").length > 0) {
             var tl = gsap.timeline();
             var lines = gsap.utils.toArray(".preloader-text-line");
-            
-            // Pour que les textes s'affichent au même endroit, on les positionne en absolu
-            // sauf le conteneur qui garde la place
-            $('.preloader-text-container').css({
-                'position': 'relative',
-                'height': '100px', // Hauteur approximative pour éviter le collapse
-                'width': '100%',
-                'display': 'flex',
-                'justify-content': 'center',
-                'align-items': 'center'
+
+            $(".preloader-text-container").css({
+                position: "relative",
+                height: "100px",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
             });
 
             $(lines).css({
-                'position': 'absolute',
-                'top': '50%',
-                'left': '50%',
-                'transform': 'translate(-50%, -50%)',
-                'width': '100%',
-                'opacity': 0 // Cache tout au départ
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "100%",
+                opacity: 0,
             });
 
-            lines.forEach((line, i) => {
+            lines.forEach(function (line) {
                 var split = hasSplitText ? new SplitText(line, { type: "chars, words" }) : null;
-                
-                // Reset position relative to parent for animation if needed, 
-                // but absolute centering handles layout.
-                // We need to set opacity 1 on the line element itself so characters can be seen
-                // but characters start at opacity 0 from the tween.
+
                 gsap.set(line, { opacity: 1 });
 
                 if (split) {
-                    // Hide chars initially
                     gsap.set(split.chars, { opacity: 0 });
-                    
-                    tl.fromTo(split.chars, 
+
+                    tl.fromTo(
+                        split.chars,
                         { opacity: 0, x: 20 },
                         {
                             opacity: 1,
                             x: 0,
                             duration: 0.8,
                             stagger: 0.05,
-                            ease: "power2.out"
+                            ease: "power2.out",
                         }
                     );
                 } else {
-                    tl.fromTo(line, 
+                    tl.fromTo(
+                        line,
                         { opacity: 0, y: 20 },
                         {
                             opacity: 1,
                             y: 0,
                             duration: 1,
-                            ease: "power2.out"
+                            ease: "power2.out",
                         }
                     );
                 }
 
-                // Pause lecture
                 tl.to({}, { duration: 1.0 });
 
-                // Disparition
                 tl.to(line, {
                     opacity: 0,
                     y: -20,
                     duration: 0.5,
-                    ease: "power2.in"
+                    ease: "power2.in",
                 });
             });
 
-            // Fin du loader
             tl.to("#loading", {
                 opacity: 0,
                 duration: 0.8,
-                onComplete: function() {
+                onComplete: function () {
                     $("#loading").css("display", "none");
-                }
+                },
             });
-        } else {
-            $("#loading").fadeOut(500);
-        }
-    });
 
+            // Filet de sécurité si l'animation GSAP échoue
+            setTimeout(function () {
+                if ($("#loading").is(":visible")) {
+                    $("#loading").fadeOut(400);
+                }
+            }, 12000);
+        } else {
+            $loading.fadeOut(500);
+        }
+    }
+
+    // Next.js injecte les scripts après le load → window "load" est déjà passé
+    if (document.readyState === "complete") {
+        runPreloader();
+    } else {
+        $(window).on("load", runPreloader);
+        // Fallback si load ne se déclenche jamais comme attendu
+        setTimeout(function () {
+            if (document.readyState === "complete") {
+                runPreloader();
+            }
+        }, 2500);
+    }
 })(jQuery);

@@ -17,6 +17,7 @@ const SCRIPTS = [
   "/assets/js/range-slider.js",
   "/assets/js/swiper-bundle.js",
   "/assets/js/slick.js",
+  "/assets/js/slick-safe.js",
   "/assets/js/magnific-popup.js",
   "/assets/js/nice-select.js",
   "/assets/js/purecounter.js",
@@ -31,19 +32,45 @@ const SCRIPTS = [
   "/assets/js/custom-loader.js",
 ];
 
-function loadScript(src: string): Promise<void> {
+const IS_DEV = process.env.NODE_ENV === "development";
+
+/** Scripts that should re-execute after Fast Refresh (contain page init) */
+const RELOADABLE_IN_DEV = new Set([
+  "/assets/js/slick-safe.js",
+  "/assets/js/main.js",
+  "/assets/js/custom-loader.js",
+]);
+
+function withDevBust(src: string) {
+  if (!IS_DEV) return src;
+  const sep = src.includes("?") ? "&" : "?";
+  return `${src}${sep}dev=${Date.now()}`;
+}
+
+function loadScript(src: string, { force = false } = {}): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
+    const existing = document.querySelectorAll(`script[data-herman-src="${src}"]`);
+    if (force) {
+      existing.forEach((node) => node.remove());
+    } else if (existing.length > 0) {
       resolve();
       return;
     }
+
     const script = document.createElement("script");
-    script.src = src;
+    script.src = withDevBust(src);
     script.async = false;
+    script.dataset.hermanSrc = src;
     script.onload = () => resolve();
     script.onerror = () => reject(new Error(`Failed to load ${src}`));
     document.body.appendChild(script);
   });
+}
+
+declare global {
+  interface Window {
+    initPortfolio11Sliders?: () => void;
+  }
 }
 
 export default function LegacyHomeScripts() {
@@ -53,8 +80,11 @@ export default function LegacyHomeScripts() {
     (async () => {
       for (const src of SCRIPTS) {
         if (cancelled) return;
-        await loadScript(src);
+        const force = IS_DEV && RELOADABLE_IN_DEV.has(src);
+        await loadScript(src, { force });
       }
+      if (cancelled) return;
+      window.initPortfolio11Sliders?.();
     })().catch(console.error);
 
     return () => {

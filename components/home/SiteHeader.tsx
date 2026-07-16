@@ -1,19 +1,45 @@
 "use client";
 
+import { useEffect } from "react";
 import { Camera, Pin, Palette } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 
-export default function SiteHeader() {
+type Props = {
+  /** Preloader d'intro — désactiver sur les pages secondaires */
+  showPreloader?: boolean;
+};
+
+export default function SiteHeader({ showPreloader = true }: Props) {
+  useEffect(() => {
+    if (!showPreloader) return;
+
+    // Filet de sécurité React si custom-loader rate le window.load
+    const timer = window.setTimeout(() => {
+      const el = document.getElementById("loading");
+      if (el && getComputedStyle(el).display !== "none") {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.4s ease";
+        window.setTimeout(() => {
+          el.style.display = "none";
+        }, 400);
+      }
+    }, 10000);
+
+    return () => window.clearTimeout(timer);
+  }, [showPreloader]);
+
   return (
     <>
-      <div id="loading" className="preloader-wrap">
-        <div className="preloader-text-container text-center">
-          <div className="preloader-text-line">Two hearts.</div>
-          <div className="preloader-text-line">One story.</div>
-          <div className="preloader-text-line">Forever begins here.</div>
-          <div className="preloader-text-line highlight">Herman & Jennifer</div>
+      {showPreloader ? (
+        <div id="loading" className="preloader-wrap">
+          <div className="preloader-text-container text-center">
+            <div className="preloader-text-line">Two hearts.</div>
+            <div className="preloader-text-line">One story.</div>
+            <div className="preloader-text-line">Forever begins here.</div>
+            <div className="preloader-text-line highlight">Herman & Jennifer</div>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div id="magic-cursor">
         <div id="ball"></div>
@@ -62,7 +88,7 @@ export default function SiteHeader() {
             <div className="tp-offcanvas-contact">
               <h3 className="tp-offcanvas-title sm">Information</h3>
               <ul>
-                <li><a href="tel:1245654">+243 80 770 1007</a></li>
+                <li><a href="tel:+12173775814">+1 (217) 377-5814</a></li>
                 <li><a href="mailto:hello@jennifer-herman.com">hello@jennifer-herman.com</a></li>
                 <li>
                   <a href="#">
@@ -103,9 +129,10 @@ export default function SiteHeader() {
                 <div className="tp-header-menu header-main-menu text-center">
                   <nav className="tp-main-menu-content">
                     <ul>
-                      <li><a href="#!" className="text-white">Home</a></li>
-                      <li><a href="/savethedate" className="text-white">Save the Date</a></li>
-                      <li><a href="#!" className="text-white">Dress Code</a></li>
+                      <li><a href="/" className="text-white">Home</a></li>
+                      <li><a href="/schedule" className="text-white">Schedule</a></li>
+                      <li><a href="#dress-code" data-open-dress-code className="text-white">Dress Code</a></li>
+                      <li><a href="/#gift-universe" className="text-white">Gift Universe</a></li>
                       <li><a href="#!" className="text-white">Contact</a></li>
                     </ul>
                   </nav>

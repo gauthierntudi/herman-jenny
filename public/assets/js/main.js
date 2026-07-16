@@ -1170,31 +1170,41 @@
 	/////////////////////////////////////////////////////
 
 	////portfolio-slider
-	$('.tp-portfolio-11-slider-active').slick({
-		slidesToShow: 1,
-		slidesToScroll: 1,
-		prevArrow: '<button type="button" class="slick-prev">' + (window.LucideSvg?.chevronLeft(20) || "") + '</button>',
-		nextArrow: '<button type="button" class="slick-next">' + (window.LucideSvg?.chevronRight(20) || "") + '</button>',
-		arrows: true,
-		asNavFor: '.tp-portfolio-11-slider-nav-active',
-		fade: true,
-		speed: 1000,
-		autoplay: true,
-		autoplaySpeed: 3000,
-	});
+	function initPortfolio11Sliders() {
+		var $main = $('.tp-portfolio-11-slider-active');
+		var $nav = $('.tp-portfolio-11-slider-nav-active');
+		if (!$main.length || !$nav.length) return;
 
-	var helpers = {
-		addZeros: function (n) {
-			return (n < 10) ? '0' + n : '' + n;
+		try {
+			if ($main.hasClass('slick-initialized')) $main.slick('unslick');
+		} catch (e) { /* ignore */ }
+		try {
+			if ($nav.hasClass('slick-initialized')) $nav.slick('unslick');
+		} catch (e) { /* ignore */ }
+
+		var helpers = {
+			addZeros: function (n) {
+				return (n < 10) ? '0' + n : '' + n;
+			}
+		};
+
+		var thumbBorderColors = [
+			'#f3e6d4', // cream 1
+			'#e8d5b5', // cream 2
+			'#faf0e4', // cream 3
+		];
+
+		function setActiveThumbBorder(currentSlide) {
+			var color = thumbBorderColors[((currentSlide % thumbBorderColors.length) + thumbBorderColors.length) % thumbBorderColors.length];
+			$nav.css('--thumb-active-border', color);
+			$nav.find('.slick-current .tp-portfolio-11-slider-nav-thumb').css('outline-color', color);
 		}
-	};
 
-	function sliderInit() {
-		var $slider = $('.tp-portfolio-11-slider-nav-active');
-		$slider.each(function () {
+		// Init nav FIRST so asNavFor never calls getSlick on an uninitialized slider
+		$nav.each(function () {
 			var $sliderParent = $(this).parent();
 			$(this).slick({
-				slidesToShow: 4,
+				slidesToShow: 3,
 				slidesToScroll: 1,
 				asNavFor: '.tp-portfolio-11-slider-active',
 				arrows: true,
@@ -1205,12 +1215,6 @@
 				centerPadding: '0',
 				speed: 600,
 				responsive: [
-					{
-						breakpoint: 1600,
-						settings: {
-							slidesToShow: 3,
-						}
-					},
 					{
 						breakpoint: 1400,
 						settings: {
@@ -1238,13 +1242,6 @@
 						}
 					},
 					{
-						breakpoint: 768,
-						settings: {
-							arrows: false,
-							slidesToShow: 4,
-						}
-					},
-					{
 						breakpoint: 480,
 						settings: {
 							arrows: false,
@@ -1257,13 +1254,34 @@
 			if ($(this).find('.tp-portfolio-11-slider-nav-item').length > 1) {
 				$(this).siblings('.slides-numbers').show();
 			}
-			$(this).on('afterChange', function (event, slick, currentSlide) {
+			$(this).off('afterChange.portfolio11').on('afterChange.portfolio11', function (event, slick, currentSlide) {
 				$sliderParent.find('.slides-numbers .active').html(helpers.addZeros(currentSlide + 1));
+				setActiveThumbBorder(currentSlide);
 			});
-
 		});
-	};
-	sliderInit();
+
+		$main.slick({
+			slidesToShow: 1,
+			slidesToScroll: 1,
+			prevArrow: '<button type="button" class="slick-prev">' + (window.LucideSvg?.chevronLeft(20) || "") + '</button>',
+			nextArrow: '<button type="button" class="slick-next">' + (window.LucideSvg?.chevronRight(20) || "") + '</button>',
+			arrows: true,
+			asNavFor: '.tp-portfolio-11-slider-nav-active',
+			fade: true,
+			speed: 1000,
+			autoplay: true,
+			autoplaySpeed: 3000,
+		});
+
+		$main.off('afterChange.portfolio11Border').on('afterChange.portfolio11Border', function (event, slick, currentSlide) {
+			setActiveThumbBorder(currentSlide);
+		});
+
+		setActiveThumbBorder(0);
+	}
+
+	window.initPortfolio11Sliders = initPortfolio11Sliders;
+	initPortfolio11Sliders();
 
 
 
