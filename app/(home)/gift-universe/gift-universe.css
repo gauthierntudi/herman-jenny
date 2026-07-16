@@ -187,12 +187,14 @@
 
 .gift-universe__moon {
   --angle: calc((360deg / var(--count, 5)) * var(--i, 0) + 18deg);
+  --moon-scale: 1;
   position: absolute;
   left: 50%;
   top: 50%;
-  width: var(--moon-size);
-  height: var(--moon-size);
-  margin: calc(var(--moon-size) / -2) 0 0 calc(var(--moon-size) / -2);
+  width: calc(var(--moon-size) * var(--moon-scale));
+  height: calc(var(--moon-size) * var(--moon-scale));
+  margin: calc(var(--moon-size) * var(--moon-scale) / -2) 0 0
+    calc(var(--moon-size) * var(--moon-scale) / -2);
   transform: rotate(var(--angle)) translateY(calc(var(--moon-radius) * -1))
     rotate(calc(var(--angle) * -1));
 }
@@ -212,7 +214,7 @@
   background: var(--moon-color, #c9a227);
   color: #faf0e4;
   font-family: var(--tp-ff-syne, Syne, sans-serif);
-  font-size: clamp(0.58rem, 1.5vw, 0.72rem);
+  font-size: clamp(0.5rem, calc(1.35vw * var(--moon-scale, 1)), 0.78rem);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;

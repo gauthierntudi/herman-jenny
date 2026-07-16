@@ -7,11 +7,11 @@ type Props = {
 };
 
 const WEDDING_WORDS = [
-  { word: "Love", color: "#c9a227" },
-  { word: "Forever", color: "#a47864" },
-  { word: "Faith", color: "#6b8f71" },
-  { word: "Joy", color: "#b85c38" },
-  { word: "Unity", color: "#5c6b8a" },
+  { word: "Love", color: "#c9a227", scale: 1.05 },
+  { word: "Forever", color: "#a47864", scale: 1.35 },
+  { word: "Faith", color: "#6b8f71", scale: 0.88 },
+  { word: "Joy", color: "#b85c38", scale: 1.15 },
+  { word: "Unity", color: "#5c6b8a", scale: 0.92 },
 ] as const;
 
 export default function GiftUniverseContent({ variant = "page" }: Props) {
@@ -53,6 +53,7 @@ export default function GiftUniverseContent({ variant = "page" }: Props) {
                   "--i": index,
                   "--count": wordCount,
                   "--moon-color": item.color,
+                  "--moon-scale": item.scale,
                 } as CSSProperties
               }
             >
