@@ -104,11 +104,12 @@ export default function GiftUniverseContent({ variant = "page" }: Props) {
           href="https://cash.app/$HermanKande"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Send a gift via Cash App to HermanKande"
         >
           <span className="gift-universe__cashapp-mark" aria-hidden="true">
             $
           </span>
-          Cash App · $HermanKande
+          Cash App
         </a>
       </div>
     </Root>

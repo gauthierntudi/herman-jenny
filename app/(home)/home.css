@@ -839,3 +839,41 @@
     transform: none;
   }
 }
+
+/* Mobile: native scroll (ScrollSmoother disabled) — kill footer white gap */
+.no-scroll-smoother #smooth-wrapper,
+.no-scroll-smoother #smooth-content {
+  height: auto !important;
+  min-height: 0 !important;
+  transform: none !important;
+  overflow: visible !important;
+}
+
+@media (max-width: 991px) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  #smooth-wrapper,
+  #smooth-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  #smooth-content {
+    transform: none !important;
+  }
+
+  .tp-footer-area,
+  footer {
+    margin-bottom: 0 !important;
+    padding-bottom: 0;
+  }
+
+  body.tp-smooth-scroll,
+  #body.tp-smooth-scroll {
+    overflow-x: clip;
+  }
+}

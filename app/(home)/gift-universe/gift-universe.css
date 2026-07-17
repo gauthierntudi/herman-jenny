@@ -19,13 +19,15 @@
   color: var(--gift-ink);
   padding: 0 0 clamp(4rem, 10vw, 7rem);
   min-height: 100vh;
-  overflow: visible;
+  /* Contain outer moons so they don't inflate page scroll / white gap after footer */
+  overflow: clip;
 }
 
 .gift-universe--section {
   min-height: 0;
-  padding: clamp(3.5rem, 8vw, 5.5rem) 0 clamp(3rem, 7vw, 5rem);
-  overflow: visible;
+  padding: clamp(3.5rem, 8vw, 5.5rem) clamp(0.75rem, 3vw, 1.5rem)
+    clamp(3rem, 7vw, 5rem);
+  overflow: clip;
   scroll-margin-top: 6rem;
 }
 
@@ -404,13 +406,18 @@
 
 @media (max-width: 720px) {
   .gift-universe {
-    --orbit-size: min(96vw, 420px);
+    --orbit-size: min(88vw, 380px);
     --orbit-radius: calc(var(--orbit-size) * 0.28);
-    --moon-radius: calc(var(--orbit-size) * 0.5);
+    --moon-radius: calc(var(--orbit-size) * 0.46);
     --planet-size: clamp(5.75rem, 28vw, 7.25rem);
     --moon-size: clamp(2.6rem, 14vw, 3.35rem);
     --orbit-duration: 42s;
     --moon-duration: 28s;
+  }
+
+  .gift-universe--section {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 
   .gift-universe__meta {

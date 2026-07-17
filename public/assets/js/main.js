@@ -1778,15 +1778,21 @@
 		gsap.config({
 			nullTargetWarn: false,
 		});
-	
-		let smoother = ScrollSmoother.create({
-			smooth: 2,
-			effects: true,
-			smoothTouch: 0.1,
-			normalizeScroll: false,
-			ignoreMobileResize: true,
-		});
 
+		// ScrollSmoother on mobile often leaves a white gap after the footer.
+		const enableSmoother = window.matchMedia("(min-width: 992px)").matches;
+		if (enableSmoother) {
+			ScrollSmoother.create({
+				smooth: 2,
+				effects: true,
+				smoothTouch: 0.1,
+				normalizeScroll: false,
+				ignoreMobileResize: true,
+			});
+		} else {
+			document.documentElement.classList.add("no-scroll-smoother");
+			document.body.classList.add("no-scroll-smoother");
+		}
 	}
 
 	/////////////////////////////////////////////////////
