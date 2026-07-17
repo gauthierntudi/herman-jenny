@@ -96,6 +96,21 @@ export default function GiftUniverseContent({ variant = "page" }: Props) {
           ))}
         </div>
       </div>
+
+      <div className="gift-universe__cashapp">
+        <p className="gift-universe__cashapp-note">Prefer a cash gift?</p>
+        <a
+          className="gift-universe__cashapp-btn"
+          href="https://cash.app/$HermanKande"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="gift-universe__cashapp-mark" aria-hidden="true">
+            $
+          </span>
+          Cash App · $HermanKande
+        </a>
+      </div>
     </Root>
   );
 }
