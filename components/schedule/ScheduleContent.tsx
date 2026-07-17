@@ -194,7 +194,7 @@ export default function ScheduleContent({ blessing, prelude, timeline, slideImag
           </p>
         </header>
 
-        <div className="schedule-timeline" aria-label="Wedding day timeline">
+        <div className="schedule-timeline" aria-label="Celebration day timeline">
           <span className="schedule-tl-line" aria-hidden="true" data-anim="line" />
 
           <div className="schedule-tl-chapter" data-anim="label">

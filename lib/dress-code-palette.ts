@@ -13,7 +13,7 @@ export type DressCodeMoment = {
   swatches: PantoneSwatch[];
 };
 
-/** Civil ceremony — cream palette */
+/** Nuptial Blessing — cream palette */
 export const civilCeremonyPalette: PantoneSwatch[] = [
   {
     code: "11-0105 TCX",
@@ -84,7 +84,7 @@ export const eveningPalette: PantoneSwatch[] = [
 export const dressCodeMoments: DressCodeMoment[] = [
   {
     id: "civil",
-    title: "Civil Ceremony",
+    title: "Nuptial Blessing",
     subtitle: "Pantone cream",
     note: "Cream and ivory tones only. Please avoid pure white (reserved for the bride).",
     swatches: civilCeremonyPalette,

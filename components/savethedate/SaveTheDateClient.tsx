@@ -86,7 +86,7 @@ function ExperienceView({ slidePaths }: { slidePaths: string[] }) {
             Please confirm your availability for this period before <strong>May 15, 2026</strong>.
           </p>
           <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--primary-color)", margin: 0, fontStyle: "italic" }}>
-            Share your journey and celebration with <strong>#TheKandeWedding</strong>.
+            Share your journey and celebration with <strong>#HermanAndJennifer</strong>.
           </p>
           <div style={{ textAlign: "left", background: "rgba(255,255,255,0.9)", border: "1px solid rgba(0,0,0,0.06)", borderRadius: 16, padding: "16px 16px 14px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 600, color: "#1c1c1e", marginBottom: 10 }}>
@@ -139,7 +139,7 @@ function ExperienceView({ slidePaths }: { slidePaths: string[] }) {
           <h2>See you soon!</h2>
           <p>We can’t wait to see you.</p>
           <p style={{ fontSize: 14, opacity: 0.85, marginTop: 8, lineHeight: 1.5 }}>
-            Share your journey and celebration with <strong>#TheKandeWedding</strong>.
+            Share your journey and celebration with <strong>#HermanAndJennifer</strong>.
           </p>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, marginTop: 24, width: "100%" }}>
             <button type="button" id="replayBtn" className="btn-replay" style={{ width: "100%", maxWidth: 280, justifyContent: "center" }}>

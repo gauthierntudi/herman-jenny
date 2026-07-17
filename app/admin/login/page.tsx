@@ -55,8 +55,8 @@ export default function AdminLoginForm() {
 
       <div className={`admin-login-card${shake ? " shake" : ""}`}>
         <div className="admin-login-brand">
-          <img src="/img/logo.png" alt="Kande's Wedding" />
-          <h1>Kande&apos;s Wedding</h1>
+          <img src="/img/logo.png" alt="Herman & Jennifer" />
+          <h1>Herman &amp; Jennifer</h1>
           <p>Gestion des invitations et RSVP</p>
           <span className="admin-login-badge">
             <Icon icon={Shield} size={14} />

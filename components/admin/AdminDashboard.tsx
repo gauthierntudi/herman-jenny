@@ -476,7 +476,7 @@ export default function AdminDashboard({ guests: initialGuests, initialTables, i
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
           <img src="/img/logo.png" alt="H & J" />
-          <h2>Kande&apos;s Wedding</h2>
+          <h2>Herman &amp; Jennifer</h2>
           <span>Administration</span>
         </div>
 

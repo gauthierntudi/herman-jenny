@@ -97,7 +97,7 @@ export default function DressCodeSection() {
             Dress Code
           </h2>
           <p className="dress-code-section__text">
-            Civil ceremony in Pantone creams. Evening party in black & gold.
+            Nuptial Blessing in Pantone creams. Evening party in black & gold.
           </p>
           <button type="button" className="dress-code-section__cta" data-open-dress-code onClick={openModal}>
             View Pantone

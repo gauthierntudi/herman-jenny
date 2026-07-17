@@ -208,7 +208,7 @@ export default function InvitationDownloadClient() {
           )}
 
           <p className="invitation-footer">
-            <Link href="/">Wedding website</Link>
+            <Link href="/">Our website</Link>
           </p>
         </div>
       </div>

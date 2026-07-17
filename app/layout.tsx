@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "../styles/lucide.css";
 
 const SITE_URL = "https://jennifer-herman.com";
-const SITE_TITLE = "Herman & Jennifer — Wedding";
+const SITE_TITLE = "Herman & Jennifer";
 const SITE_DESCRIPTION =
   "From Kinshasa to the United States, our journey is one of faith, love, and purpose.";
 const SITE_ICON = `${SITE_URL}/img/icon.png`;

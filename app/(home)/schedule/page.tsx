@@ -8,7 +8,7 @@ import "./schedule.css";
 
 export const metadata: Metadata = {
   title: "Schedule — Herman & Jennifer",
-  description: "Wedding day schedule — Blessing Ceremony and Grand Reception Party.",
+  description: "Celebration day schedule — Blessing Ceremony and Grand Reception Party.",
 };
 
 const BLESSING = {
@@ -22,7 +22,7 @@ const RECEPTION_PRELUDE = {
   title: "Guests Seated",
   lines: [
     "Please take your seats as soft instrumental music fills the room.",
-    "The wedding party prepares for the grand entrance.",
+    "The bridal party prepares for the grand entrance.",
   ],
 };
 
@@ -31,7 +31,7 @@ const RECEPTION_TIMELINE = [
   { time: "6:50 PM", title: "Opening Prayer" },
   {
     time: "7:00 PM",
-    title: "Wedding Party Entrance",
+    title: "Bridal Party Entrance",
     detail: "Groomsmen, bridesmaids, then Jennifer & Herman",
   },
   {

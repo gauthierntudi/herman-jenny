@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./admin-login.css";
 
 export const metadata: Metadata = {
-  title: "Admin — Kande's Wedding",
+  title: "Admin — Herman & Jennifer",
   robots: { index: false, follow: false },
 };
 
