@@ -91,9 +91,14 @@ export default function SiteHeader({ showPreloader = true }: Props) {
                 <li><a href="tel:+12173775814">+1 (217) 377-5814</a></li>
                 <li><a href="mailto:hello@jennifer-herman.com">hello@jennifer-herman.com</a></li>
                 <li>
-                  <a href="#">
-                    Bloomington, Illinois<br />
-                    Parke Regency Hotel & Conference Center
+                  <a
+                    href="https://www.google.com/maps/place/Parke+Regency+Hotel+%26+Conference+Center/@40.5017784,-88.9042559,19.23z/data=!4m15!1m5!3m4!2zNDDCsDMwJzA1LjgiTiA4OMKwNTQnMTMuMyJX!8m2!3d40.501618!4d-88.903681!3m8!1s0x880b7b277046d69d:0x48526d028420ebda!5m2!4m1!1i2!8m2!3d40.5014783!4d-88.9032926!16s%2Fg%2F11xg9pgd3?entry=ttu&g_ep=EgoyMDI2MDcxNC4wIKXMDSoASAFQAw%3D%3D"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Parke Regency Hotel &amp; Conference Center
+                    <br />
+                    1413 Leslie Dr, Bloomington, IL 61704
                   </a>
                 </li>
               </ul>
@@ -101,7 +106,16 @@ export default function SiteHeader({ showPreloader = true }: Props) {
             <div className="tp-offcanvas-social">
               <h3 className="tp-offcanvas-title sm">Join us</h3>
               <ul>
-                <li><a href="#"><Icon icon={Pin} size={18} /></a></li>
+                <li>
+                  <a
+                    href="https://www.google.com/maps/place/Parke+Regency+Hotel+%26+Conference+Center/@40.5017784,-88.9042559,19.23z/data=!4m15!1m5!3m4!2zNDDCsDMwJzA1LjgiTiA4OMKwNTQnMTMuMyJX!8m2!3d40.501618!4d-88.903681!3m8!1s0x880b7b277046d69d:0x48526d028420ebda!5m2!4m1!1i2!8m2!3d40.5014783!4d-88.9032926!16s%2Fg%2F11xg9pgd3?entry=ttu&g_ep=EgoyMDI2MDcxNC4wIKXMDSoASAFQAw%3D%3D"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Open venue in Google Maps"
+                  >
+                    <Icon icon={Pin} size={18} />
+                  </a>
+                </li>
                 <li><a href="#"><Icon icon={Camera} size={18} /></a></li>
                 <li><a href="#"><Icon icon={Palette} size={18} /></a></li>
               </ul>

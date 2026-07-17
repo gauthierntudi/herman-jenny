@@ -3,7 +3,7 @@ import "./invitation.css";
 
 export const metadata: Metadata = {
   title: "Your Invitation — Herman & Jennifer",
-  description: "Download your personalized table invitation.",
+  description: "Download your personalized wedding table invitation.",
   robots: { index: false, follow: false },
 };
 

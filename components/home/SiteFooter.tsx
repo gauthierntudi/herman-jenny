@@ -29,7 +29,7 @@ export default function SiteFooter() {
               <div className="col-xl-5 col-lg-6">
                 <div className="tp-footer-middle-wrap">
                   <div className="tp-footer-content">
-                    <h4 className="tp-footer-big-title footer-big-text">forever</h4>
+                    <h4 className="tp-footer-big-title footer-big-text">wedding</h4>
                   </div>
                   <div className="row">
                     <div className="col-xl-6 col-lg-6 col-md-6">
@@ -43,10 +43,14 @@ export default function SiteFooter() {
                             <a href="tel:+12173775814">+1 (217) 377-5814</a>
                           </div>
                           <div className="tp-footer-widget-info-location tp_fade_bottom">
-                            <a href="#!" target="_blank" rel="noreferrer">
-                              Bloomington, Illinois
-                              <br />
+                            <a
+                              href="https://www.google.com/maps/place/Parke+Regency+Hotel+%26+Conference+Center/@40.5017784,-88.9042559,19.23z/data=!4m15!1m5!3m4!2zNDDCsDMwJzA1LjgiTiA4OMKwNTQnMTMuMyJX!8m2!3d40.501618!4d-88.903681!3m8!1s0x880b7b277046d69d:0x48526d028420ebda!5m2!4m1!1i2!8m2!3d40.5014783!4d-88.9032926!16s%2Fg%2F11xg9pgd3?entry=ttu&g_ep=EgoyMDI2MDcxNC4wIKXMDSoASAFQAw%3D%3D"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
                               Parke Regency Hotel &amp; Conference Center
+                              <br />
+                              1413 Leslie Dr, Bloomington, IL 61704
                             </a>
                           </div>
                         </div>
