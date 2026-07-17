@@ -3,6 +3,7 @@ import SiteFooter from "@/components/home/SiteFooter";
 import LegacyHomeScripts from "@/components/home/LegacyHomeScripts";
 import DualCubeSection from "@/components/home/DualCubeSection";
 import DressCodeSection from "@/components/home/DressCodeSection";
+import SmoothHashScroll from "@/components/home/SmoothHashScroll";
 import GiftUniverseContent from "@/components/gift/GiftUniverseContent";
 import { getRandomDualCubeFaces } from "@/lib/dual-cube-faces";
 import homeBodyHtml from "@/content/home-body.html";
@@ -48,6 +49,7 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      <SmoothHashScroll />
       <LegacyHomeScripts />
     </>
   );

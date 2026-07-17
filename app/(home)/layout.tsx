@@ -3,7 +3,9 @@ import "./home.css";
 
 export const metadata: Metadata = {
   icons: {
-    icon: "/assets/img/favicon.png",
+    icon: [{ url: "/img/icon.png", type: "image/png" }],
+    shortcut: "/img/icon.png",
+    apple: [{ url: "/img/icon.png", type: "image/png" }],
   },
 };
 
