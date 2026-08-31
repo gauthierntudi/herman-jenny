@@ -78,7 +78,7 @@ export default function HostessLoginForm() {
       <div className="hostess-login-hero">
         <p className="hostess-login-seal">Équipe du jour</p>
         <h1>Hôtesses</h1>
-        <p className="hostess-login-lead">Check-in · Tables · Bar</p>
+        <p className="hostess-login-lead">Accueil · Tables · Bar</p>
       </div>
 
       <form

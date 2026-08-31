@@ -35,6 +35,7 @@ model Guest {
   updatedAt          DateTime    @updatedAt @map("updated_at")
   tableAssignment    TableAssignment?
   drinkServings      DrinkServing[]
+  usherCalls         UsherCall[]
 
   @@map("guests")
 }
@@ -47,6 +48,8 @@ model WeddingTable {
   updatedAt     DateTime          @updatedAt @map("updated_at")
   assignments   TableAssignment[]
   drinkServings DrinkServing[]
+  drinkOrders   DrinkOrder[]
+  usherCalls    UsherCall[]
 
   @@map("wedding_tables")
 }
@@ -58,7 +61,8 @@ model DrinkItem {
   unit      String         @default("verre")
   sortOrder Int            @default(0) @map("sort_order")
   active    Boolean        @default(true)
-  servings  DrinkServing[]
+  servings    DrinkServing[]
+  orderItems  DrinkOrderItem[]
 
   @@map("drink_items")
 }
@@ -77,6 +81,59 @@ model DrinkServing {
   @@index([tableId, drinkId])
   @@index([createdAt])
   @@map("drink_servings")
+}
+
+enum DrinkOrderStatus {
+  PENDING
+  PREPARING
+  READY
+  PICKED_UP
+  CANCELLED
+}
+
+model DrinkOrder {
+  id        String           @id @default(cuid())
+  tableId   String           @map("table_id")
+  status    DrinkOrderStatus @default(PENDING)
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  table     WeddingTable     @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  items     DrinkOrderItem[]
+
+  @@index([status, createdAt])
+  @@map("drink_orders")
+}
+
+model DrinkOrderItem {
+  id       String     @id @default(cuid())
+  orderId  String     @map("order_id")
+  drinkId  String     @map("drink_id")
+  quantity Int
+  order    DrinkOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  drink    DrinkItem  @relation(fields: [drinkId], references: [id], onDelete: Restrict)
+
+  @@map("drink_order_items")
+}
+
+enum UsherCallStatus {
+  WAITING
+  TAKEN
+  SEATED
+  CANCELLED
+}
+
+model UsherCall {
+  id        String          @id @default(cuid())
+  guestId   String          @map("guest_id")
+  tableId   String?         @map("table_id")
+  status    UsherCallStatus @default(WAITING)
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  guest     Guest           @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  table     WeddingTable?   @relation(fields: [tableId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@map("usher_calls")
 }
 
 model TableAssignment {

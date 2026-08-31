@@ -4,14 +4,14 @@ import type { ReactNode } from "react";
 import "./hostess.css";
 
 export const metadata: Metadata = {
-  title: "Hôtesses",
-  description: "Check-in des invitations et gestion des boissons par table.",
+  title: "Protocole",
+  description: "Accueil, accompagnement et service des boissons.",
   robots: { index: false, follow: false },
   manifest: "/hostess-manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Hôtesses HJ",
+    title: "Protocole HJ",
   },
   icons: {
     icon: [{ url: "/img/icon.png", type: "image/png" }],

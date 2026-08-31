@@ -34,6 +34,11 @@ export async function POST(request: Request) {
         include: guestTableInclude,
       });
 
+      await prisma.usherCall.updateMany({
+        where: { guestId: guest.id, status: { in: ["WAITING", "TAKEN"] } },
+        data: { status: "CANCELLED" },
+      });
+
       return NextResponse.json({
         success: true,
         guest: serializeHostessGuest(updated),
@@ -49,6 +54,20 @@ export async function POST(request: Request) {
       },
       include: guestTableInclude,
     });
+
+    if (!guest.checkedInAt) {
+      const waiting = await prisma.usherCall.findFirst({
+        where: { guestId: guest.id, status: "WAITING" },
+      });
+      if (!waiting) {
+        await prisma.usherCall.create({
+          data: {
+            guestId: guest.id,
+            tableId: guest.tableAssignment?.tableId ?? null,
+          },
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -127,3 +127,44 @@ export const hostessDrinkSchema = z.object({
   tableId: z.string().min(1),
   drinkId: z.string().min(1),
 });
+
+export const createDrinkItemSchema = z.object({
+  action: z.literal("create"),
+  name: z.string().trim().min(2).max(60),
+  unit: z
+    .string()
+    .trim()
+    .max(30)
+    .optional()
+    .transform((value) => (value && value.length > 0 ? value : "verre")),
+});
+
+export const updateDrinkItemSchema = z.object({
+  action: z.literal("update"),
+  id: z.string().min(1),
+  name: z.string().trim().min(2).max(60).optional(),
+  unit: z.string().trim().min(2).max(30).optional(),
+  active: z.boolean().optional(),
+});
+
+export const createDrinkOrderSchema = z.object({
+  tableId: z.string().min(1),
+  items: z
+    .array(
+      z.object({
+        drinkId: z.string().min(1),
+        quantity: z.number().int().min(1).max(40),
+      })
+    )
+    .min(1),
+});
+
+export const drinkOrderActionSchema = z.object({
+  orderId: z.string().min(1),
+  action: z.enum(["prepare", "ready", "pickup", "cancel"]),
+});
+
+export const usherCallActionSchema = z.object({
+  callId: z.string().min(1),
+  action: z.enum(["take", "seat", "cancel"]),
+});

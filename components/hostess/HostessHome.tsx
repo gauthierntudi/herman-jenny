@@ -1,22 +1,25 @@
 "use client";
 
-import { QrCode, UtensilsCrossed } from "lucide-react";
+import { Bell, Footprints, QrCode, UtensilsCrossed, Wine } from "lucide-react";
 import GuestAvatar from "@/components/admin/GuestAvatar";
 import { Icon } from "@/components/ui/Icon";
 import type { HostessTable } from "@/components/hostess/TablesDrinksView";
 
+type Station = "entry" | "usher" | "tables" | "bar";
+
 type Props = {
   stats: { tables: number; checkedInGuests: number; arrivedPeople: number };
   tables: HostessTable[];
-  onCheckin: () => void;
-  onTables: () => void;
+  waitingGuides?: number;
+  pendingOrders?: number;
+  onOpen: (station: Station) => void;
 };
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function HostessHome({ stats, tables, onCheckin, onTables }: Props) {
+export default function HostessHome({ stats, tables, waitingGuides = 0, pendingOrders = 0, onOpen }: Props) {
   const recent = tables
     .flatMap((table) =>
       table.guests
@@ -34,29 +37,49 @@ export default function HostessHome({ stats, tables, onCheckin, onTables }: Prop
           <span>Arrivés</span>
         </div>
         <div>
-          <strong>{stats.checkedInGuests}</strong>
-          <span>Invitations</span>
+          <strong>{waitingGuides}</strong>
+          <span>À guider</span>
         </div>
         <div>
-          <strong>{stats.tables}</strong>
-          <span>Tables</span>
+          <strong>{pendingOrders}</strong>
+          <span>Au bar</span>
         </div>
       </div>
 
+      <p className="hostess-home-section">Service accueil</p>
       <div className="hostess-home-actions">
-        <button type="button" className="hostess-home-cta" onClick={onCheckin}>
+        <button type="button" className="hostess-home-cta" onClick={() => onOpen("entry")}>
           <Icon icon={QrCode} size={26} />
           <span>
-            <strong>Scanner une invitation</strong>
-            <em>Check-in à l’entrée</em>
+            <strong>Manager d’entrée</strong>
+            <em>Scan QR + annonce</em>
           </span>
         </button>
+        <button type="button" className="hostess-home-card" onClick={() => onOpen("usher")}>
+          <Icon icon={Footprints} size={24} />
+          <span>
+            <strong>Accompagnement</strong>
+            <em>Guider vers la table</em>
+          </span>
+        </button>
+      </div>
 
-        <button type="button" className="hostess-home-card" onClick={onTables}>
+      <p className="hostess-home-section">Service boissons</p>
+      <div className="hostess-home-actions">
+        <button type="button" className="hostess-home-card" onClick={() => onOpen("tables")}>
           <Icon icon={UtensilsCrossed} size={24} />
           <span>
-            <strong>Tables &amp; bar</strong>
-            <em>Boissons par table</em>
+            <strong>Protocole tables</strong>
+            <em>Commander au bar</em>
+          </span>
+        </button>
+        <button type="button" className="hostess-home-card" onClick={() => onOpen("bar")}>
+          <Icon icon={Wine} size={24} />
+          <span>
+            <strong>Drink Manager</strong>
+            <em>
+              <Icon icon={Bell} size={12} /> Catalogue + plateaux
+            </em>
           </span>
         </button>
       </div>

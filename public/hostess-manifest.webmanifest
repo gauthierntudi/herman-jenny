@@ -1,8 +1,8 @@
 {
   "id": "/hostess",
-  "name": "Hôtesses — Herman & Jennifer",
-  "short_name": "Hôtesses HJ",
-  "description": "Check-in des invitations et service des boissons par table.",
+  "name": "Protocole — Herman & Jennifer",
+  "short_name": "Protocole HJ",
+  "description": "Accueil, accompagnement et service des boissons.",
   "start_url": "/hostess",
   "scope": "/hostess",
   "display": "standalone",

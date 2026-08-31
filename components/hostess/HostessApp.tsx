@@ -1,18 +1,18 @@
 "use client";
 
-import { House, LogOut, QrCode, UtensilsCrossed } from "lucide-react";
+import { Footprints, House, LogOut, QrCode, UtensilsCrossed, Wine } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import CheckInView from "@/components/hostess/CheckInView";
+import DrinkManagerView from "@/components/hostess/DrinkManagerView";
 import HostessHome from "@/components/hostess/HostessHome";
 import HostessPwa from "@/components/hostess/HostessPwa";
-import TablesDrinksView, {
-  type HostessDrink,
-  type HostessTable,
-} from "@/components/hostess/TablesDrinksView";
+import ProtocolTablesView from "@/components/hostess/ProtocolTablesView";
+import UsherView from "@/components/hostess/UsherView";
+import type { HostessDrink, HostessTable } from "@/components/hostess/TablesDrinksView";
 import { Icon } from "@/components/ui/Icon";
 
-type Tab = "home" | "checkin" | "tables";
+type Tab = "home" | "entry" | "usher" | "tables" | "bar";
 
 type Props = {
   role: "admin" | "hostess";
@@ -20,11 +20,12 @@ type Props = {
 };
 
 export default function HostessApp({ role, initialToken }: Props) {
-  const [tab, setTab] = useState<Tab>(initialToken ? "checkin" : "home");
+  const [tab, setTab] = useState<Tab>(initialToken ? "entry" : "home");
   const [tables, setTables] = useState<HostessTable[]>([]);
   const [drinks, setDrinks] = useState<HostessDrink[]>([]);
   const [stats, setStats] = useState({ tables: 0, checkedInGuests: 0, arrivedPeople: 0 });
-  const [focusTableId, setFocusTableId] = useState<string | null>(null);
+  const [waitingGuides, setWaitingGuides] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
 
   const loadTables = async () => {
     try {
@@ -39,30 +40,40 @@ export default function HostessApp({ role, initialToken }: Props) {
     }
   };
 
+  const loadBadges = async () => {
+    try {
+      const [calls, orders] = await Promise.all([fetch("/api/hostess/usher-calls"), fetch("/api/hostess/orders")]);
+      const callData = await calls.json();
+      const orderData = await orders.json();
+      if (callData.success) setWaitingGuides(callData.waitingCount || 0);
+      if (orderData.success) setPendingOrders(orderData.pendingCount || 0);
+    } catch {
+      /* ignore */
+    }
+  };
+
   useEffect(() => {
     document.body.classList.add("hostess-page");
     loadTables();
-    const id = window.setInterval(loadTables, 20000);
+    loadBadges();
+    const id = window.setInterval(() => {
+      loadTables();
+      loadBadges();
+    }, 8000);
     return () => {
       document.body.classList.remove("hostess-page");
       window.clearInterval(id);
     };
   }, []);
 
-  const openTable = (tableId: string) => {
-    setFocusTableId(tableId);
-    setTab("tables");
-    loadTables();
-  };
-
   return (
-    <div className={`hostess-app${tab === "checkin" ? " is-checkin" : ""}`}>
+    <div className={`hostess-app${tab === "entry" ? " is-checkin" : ""}`}>
       <HostessPwa />
-      {tab !== "checkin" && (
+      {tab !== "entry" && (
         <header className="hostess-header">
           <div>
             <p className="hostess-kicker">Jennifer &amp; Herman</p>
-            <h1>Hôtesses</h1>
+            <h1>Protocole</h1>
           </div>
           <div className="hostess-header-actions">
             {role === "admin" && (
@@ -83,45 +94,41 @@ export default function HostessApp({ role, initialToken }: Props) {
           <HostessHome
             stats={stats}
             tables={tables}
-            onCheckin={() => setTab("checkin")}
-            onTables={() => {
-              setTab("tables");
-              loadTables();
-            }}
+            waitingGuides={waitingGuides}
+            pendingOrders={pendingOrders}
+            onOpen={setTab}
           />
         )}
-        {tab === "checkin" && (
-          <CheckInView initialToken={initialToken} onServeTable={openTable} onCheckinChange={loadTables} />
+        {tab === "entry" && (
+          <CheckInView initialToken={initialToken} onCheckinChange={loadTables} />
         )}
+        {tab === "usher" && <UsherView />}
         {tab === "tables" && (
-          <TablesDrinksView
-            tables={tables}
-            drinks={drinks}
-            focusTableId={focusTableId}
-            onTablesChange={setTables}
-          />
+          <ProtocolTablesView tables={tables} drinks={drinks} />
         )}
+        {tab === "bar" && <DrinkManagerView />}
       </main>
 
-      <nav className="hostess-nav" aria-label="Navigation hôtesses">
+      <nav className="hostess-nav hostess-nav-5" aria-label="Navigation protocole">
         <button type="button" className={tab === "home" ? "is-active" : ""} onClick={() => setTab("home")}>
-          <Icon icon={House} size={22} />
+          <Icon icon={House} size={20} />
           Accueil
         </button>
-        <button type="button" className={tab === "checkin" ? "is-active" : ""} onClick={() => setTab("checkin")}>
-          <Icon icon={QrCode} size={22} />
-          Check-in
+        <button type="button" className={tab === "entry" ? "is-active" : ""} onClick={() => setTab("entry")}>
+          <Icon icon={QrCode} size={20} />
+          Entrée
         </button>
-        <button
-          type="button"
-          className={tab === "tables" ? "is-active" : ""}
-          onClick={() => {
-            setTab("tables");
-            loadTables();
-          }}
-        >
-          <Icon icon={UtensilsCrossed} size={22} />
+        <button type="button" className={tab === "usher" ? "is-active" : ""} onClick={() => setTab("usher")}>
+          <Icon icon={Footprints} size={20} />
+          Guide{waitingGuides ? ` ${waitingGuides}` : ""}
+        </button>
+        <button type="button" className={tab === "tables" ? "is-active" : ""} onClick={() => setTab("tables")}>
+          <Icon icon={UtensilsCrossed} size={20} />
           Tables
+        </button>
+        <button type="button" className={tab === "bar" ? "is-active" : ""} onClick={() => setTab("bar")}>
+          <Icon icon={Wine} size={20} />
+          Bar{pendingOrders ? ` ${pendingOrders}` : ""}
         </button>
       </nav>
     </div>

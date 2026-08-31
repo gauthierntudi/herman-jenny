@@ -8,17 +8,16 @@ import {
   Search,
   Undo2,
   Users,
-  UtensilsCrossed,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import GuestAvatar from "@/components/admin/GuestAvatar";
 import QrScanner from "@/components/hostess/QrScanner";
 import { Icon } from "@/components/ui/Icon";
+import { announceGuest } from "@/lib/announce";
 import type { HostessGuest } from "@/lib/hostess";
 
 type Props = {
   initialToken?: string;
-  onServeTable: (tableId: string) => void;
   onCheckinChange?: () => void;
 };
 
@@ -27,7 +26,7 @@ function formatTime(iso: string | null) {
   return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function CheckInView({ initialToken, onServeTable, onCheckinChange }: Props) {
+export default function CheckInView({ initialToken, onCheckinChange }: Props) {
   const [mode, setMode] = useState<"scan" | "search">(initialToken ? "search" : "scan");
   const [query, setQuery] = useState(initialToken || "");
   const [loading, setLoading] = useState(false);
@@ -184,6 +183,11 @@ export default function CheckInView({ initialToken, onServeTable, onCheckinChang
     }
   };
 
+  useEffect(() => {
+    if (!guest) return;
+    announceGuest(guest.name, guest.table?.name);
+  }, [guest?.id]);
+
   const peopleOptions = useMemo(() => {
     const max = Math.max(guest?.peopleCount || 1, 4);
     return Array.from({ length: max }, (_, i) => i + 1);
@@ -332,14 +336,7 @@ export default function CheckInView({ initialToken, onServeTable, onCheckinChang
               </button>
             )}
             {guest.table && (
-              <button
-                type="button"
-                className="hostess-btn hostess-btn-ghost"
-                onClick={() => onServeTable(guest.table!.id)}
-              >
-                <Icon icon={UtensilsCrossed} size={16} />
-                Boissons {guest.table.name}
-              </button>
+              <p className="hostess-ticket-meta">Table : {guest.table.name}</p>
             )}
             <button
               type="button"
