@@ -14,12 +14,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorize(credentials) {
         const password = credentials?.password as string | undefined;
         const adminPassword = process.env.ADMIN_PASSWORD;
+        const hostessPassword = process.env.HOSTESS_PASSWORD;
 
-        if (!adminPassword || !password || password !== adminPassword) {
-          return null;
+        if (!password) return null;
+
+        if (adminPassword && password === adminPassword) {
+          return { id: "admin", name: "Admin", role: "admin" as const };
         }
 
-        return { id: "admin", name: "Admin" };
+        if (hostessPassword && password === hostessPassword) {
+          return { id: "hostess", name: "Hôtesse", role: "hostess" as const };
+        }
+
+        return null;
       },
     }),
   ],

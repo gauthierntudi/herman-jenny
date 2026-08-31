@@ -39,6 +39,18 @@ function guestData(g: LegacyGuest, token: string, deviceId: string | null) {
 }
 
 async function main() {
+  const existingGuests = await prisma.guest.count();
+  if (existingGuests > 0 && process.env.FORCE_SEED !== "1") {
+    console.log(
+      `Seed annulé : ${existingGuests} invité(s) déjà en base. Aucune donnée n’a été modifiée.`
+    );
+    console.log("Pour forcer un réimport (écrase les fiches existantes) : FORCE_SEED=1 npm run db:seed");
+    const { ensureDrinkCatalog } = await import("../lib/drink-catalog");
+    const drinks = await ensureDrinkCatalog();
+    console.log(`Catalogue boissons : ${drinks.length} item(s).`);
+    return;
+  }
+
   const guestsPath = join(process.cwd(), "guests.json");
   if (!existsSync(guestsPath)) {
     console.log("No guests.json found, skipping seed.");
@@ -104,6 +116,10 @@ async function main() {
   if (skippedInvalid) {
     console.log(`⚠ ${skippedInvalid} entrée(s) ignorée(s) (phone ou name manquant).`);
   }
+
+  const { ensureDrinkCatalog } = await import("../lib/drink-catalog");
+  const drinks = await ensureDrinkCatalog();
+  console.log(`Catalogue boissons : ${drinks.length} item(s).`);
 }
 
 main()

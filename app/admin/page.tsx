@@ -18,6 +18,7 @@ export default async function AdminPage({
 }) {
   const session = await auth();
   if (!session?.user) redirect("/admin/login");
+  if (session.user.role === "hostess") redirect("/hostess");
 
   const { tab: tabParam } = await searchParams;
   const initialTab = parseTab(tabParam);

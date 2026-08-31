@@ -4,6 +4,8 @@ import path from "path";
 const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
+  // Accès HMR depuis le téléphone / le réseau local (npm run dev)
+  allowedDevOrigins: ["172.20.10.6"],
   // Fix: Next.js voyait /Users/mac/Documents/package-lock.json et prenait ce dossier comme racine
   outputFileTracingRoot: path.join(__dirname),
   images: {

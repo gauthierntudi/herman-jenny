@@ -1,7 +1,7 @@
-import { auth } from "@/auth";
 import { createGuestRecord } from "@/lib/guest-create";
 import { getPeopleCount, sumTableOccupied } from "@/lib/people-count";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/staff-auth";
 import {
   assignGuestSchema,
   createGuestAndAssignSchema,
@@ -20,12 +20,6 @@ const tableInclude = {
     orderBy: { createdAt: "asc" as const },
   },
 };
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user) return null;
-  return session;
-}
 
 async function getTableOrError(id: string) {
   const table = await prisma.weddingTable.findUnique({

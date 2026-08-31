@@ -1,13 +1,13 @@
-import { auth } from "@/auth";
 import { getPeopleCount, sumTableOccupied } from "@/lib/people-count";
 import { prisma } from "@/lib/prisma";
 import { isValidE164, normalizePhone } from "@/lib/phone";
+import { requireAdmin } from "@/lib/staff-auth";
 import { markSentSchema, updateGuestSchema, updatePeopleCountSchema } from "@/lib/validators";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
+  const session = await requireAdmin();
+  if (!session) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -19,8 +19,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user) {
+  const session = await requireAdmin();
+  if (!session) {
     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 

@@ -1,17 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/staff-auth";
 import { normalizePhone } from "@/lib/phone";
 import { sendTableInvitationForGuest } from "@/lib/send-table-invitation";
 import { getTemplateSid, sendWhatsAppTemplate } from "@/lib/twilio";
 import { toggleBlockedSchema, whatsappBulkSchema, whatsappRecipientSchema, sendTableInvitationSchema, sendTableInvitationBulkSchema } from "@/lib/validators";
 import { z } from "zod";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user) return null;
-  return session;
-}
 
 export async function POST(request: Request) {
   const session = await requireAdmin();

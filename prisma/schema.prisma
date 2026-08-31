@@ -29,22 +29,54 @@ model Guest {
   needInvitation     Boolean     @default(false) @map("need_invitation")
   needVisaAssistance Boolean     @default(false) @map("need_visa_assistance")
   needHotelBooking   Boolean     @default(false) @map("need_hotel_booking")
+  checkedInAt        DateTime?   @map("checked_in_at")
+  checkedInCount     Int?        @map("checked_in_count")
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
   tableAssignment    TableAssignment?
+  drinkServings      DrinkServing[]
 
   @@map("guests")
 }
 
 model WeddingTable {
-  id          String            @id @default(cuid())
-  name        String
-  seatCount   Int               @map("seat_count")
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-  assignments TableAssignment[]
+  id            String            @id @default(cuid())
+  name          String
+  seatCount     Int               @map("seat_count")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  assignments   TableAssignment[]
+  drinkServings DrinkServing[]
 
   @@map("wedding_tables")
+}
+
+model DrinkItem {
+  id        String         @id @default(cuid())
+  slug      String         @unique
+  name      String
+  unit      String         @default("verre")
+  sortOrder Int            @default(0) @map("sort_order")
+  active    Boolean        @default(true)
+  servings  DrinkServing[]
+
+  @@map("drink_items")
+}
+
+model DrinkServing {
+  id        String       @id @default(cuid())
+  tableId   String       @map("table_id")
+  drinkId   String       @map("drink_id")
+  quantity  Int          @default(1)
+  guestId   String?      @map("guest_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+  table     WeddingTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  drink     DrinkItem    @relation(fields: [drinkId], references: [id], onDelete: Cascade)
+  guest     Guest?       @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  @@index([tableId, drinkId])
+  @@index([createdAt])
+  @@map("drink_servings")
 }
 
 model TableAssignment {

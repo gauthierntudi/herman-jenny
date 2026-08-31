@@ -110,3 +110,20 @@ export const updateGuestSchema = z.object({
 
 /** @deprecated use updateGuestSchema */
 export const updateGuestNameSchema = updateGuestSchema;
+
+export const hostessGuestLookupSchema = z.object({
+  token: z.string().trim().min(1).max(200).optional(),
+  q: z.string().trim().min(1).max(120).optional(),
+});
+
+export const hostessCheckinSchema = z.object({
+  guestId: z.string().min(1),
+  action: z.enum(["checkin", "undo"]),
+  peopleCount: z.number().int().min(1).max(50).optional(),
+});
+
+export const hostessDrinkSchema = z.object({
+  action: z.enum(["serve", "undo"]),
+  tableId: z.string().min(1),
+  drinkId: z.string().min(1),
+});
