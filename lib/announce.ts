@@ -31,6 +31,15 @@ function speakBrowser(name: string) {
   window.speechSynthesis.speak(utterance);
 }
 
+export function stopAnnouncement() {
+  if (typeof window === "undefined") return;
+  window.speechSynthesis?.cancel();
+  if (!player) return;
+  player.pause();
+  player.removeAttribute("src");
+  player.load();
+}
+
 export function announceGuest(name: string) {
   if (typeof window === "undefined") return;
 

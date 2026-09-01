@@ -578,7 +578,37 @@ body.hostess-page *::after {
 }
 
 .hostess-ticket.is-in {
-  border-color: rgba(61, 154, 106, 0.45);
+  border-color: rgba(232, 168, 72, 0.55);
+}
+
+.hostess-already {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(232, 168, 72, 0.16);
+  border: 1px solid rgba(232, 168, 72, 0.4);
+  color: #f3d19a;
+}
+
+.hostess-already strong,
+.hostess-already em {
+  display: block;
+}
+
+.hostess-already strong {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hostess-already em {
+  margin-top: 2px;
+  font-style: normal;
+  font-size: 13px;
+  color: #ead4b0;
 }
 
 .hostess-ticket-top {
@@ -644,7 +674,7 @@ body.hostess-page *::after {
   align-items: center;
   gap: 8px;
   margin: 16px 0 0;
-  color: #9ee0bb;
+  color: #f3d19a;
   font-size: 14px;
 }
 

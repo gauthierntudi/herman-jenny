@@ -2,6 +2,7 @@
 
 import {
   Check,
+  CircleAlert,
   Keyboard,
   Loader2,
   QrCode,
@@ -13,7 +14,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import GuestAvatar from "@/components/admin/GuestAvatar";
 import QrScanner from "@/components/hostess/QrScanner";
 import { Icon } from "@/components/ui/Icon";
-import { announceGuest } from "@/lib/announce";
+import { announceGuest, stopAnnouncement } from "@/lib/announce";
 import { extractInvitationToken } from "@/lib/invitation-token";
 import { formatTableLabel, parseTableNumber } from "@/lib/table-label";
 import type { HostessGuest } from "@/lib/hostess";
@@ -44,7 +45,12 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
   const [scanEpoch, setScanEpoch] = useState(0);
 
   const revealGuest = (next: HostessGuest) => {
-    announceGuest(next.name);
+    if (next.checkedInAt) {
+      stopAnnouncement();
+      navigator.vibrate?.([40, 80, 40]);
+    } else {
+      announceGuest(next.name);
+    }
     setGuest(next);
     setPeople(next.checkedInCount || next.peopleCount || 1);
   };
@@ -281,7 +287,10 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
                 <GuestAvatar name={item.name} size={40} />
                 <span>
                   <strong>{item.name}</strong>
-                  <em>{item.table ? formatTableLabel(item.table.name) : "Sans table"}</em>
+                  <em>
+                    {item.table ? formatTableLabel(item.table.name) : "Sans table"}
+                    {item.checkedInAt ? " · Déjà scanné" : ""}
+                  </em>
                 </span>
               </button>
             </li>
@@ -292,6 +301,18 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
       {guest && (
         <article className={`hostess-ticket${guest.checkedInAt ? " is-in" : ""}`}>
           {stamped && <div className="hostess-stamp">Arrivé</div>}
+          {guest.checkedInAt ? (
+            <p className="hostess-already" role="status">
+              <Icon icon={CircleAlert} size={18} />
+              <span>
+                <strong>Déjà scanné</strong>
+                <em>
+                  Ce pass a déjà été confirmé à l’entrée · {formatTime(guest.checkedInAt)}
+                  {guest.checkedInCount ? ` · ${guest.checkedInCount} pers.` : ""}
+                </em>
+              </span>
+            </p>
+          ) : null}
           <div className="hostess-ticket-top">
             <GuestAvatar name={guest.name} size={56} />
             <div>
