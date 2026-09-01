@@ -650,6 +650,7 @@ body.hostess-page *::after {
 
 .hostess-people {
   margin-top: 16px;
+  text-align: center;
 }
 
 .hostess-people span {
@@ -661,6 +662,7 @@ body.hostess-page *::after {
 
 .hostess-people div {
   display: flex;
+  justify-content: center;
   gap: 8px;
 }
 
