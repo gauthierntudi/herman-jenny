@@ -1,12 +1,12 @@
 import { welcomeSpeechText } from "@/lib/welcome-speech";
 
 let player: HTMLAudioElement | null = null;
-const urlCache = new Map<string, string>();
 
 function getPlayer() {
   if (!player) {
     player = new Audio();
     player.preload = "auto";
+    player.setAttribute("playsinline", "true");
   }
   return player;
 }
@@ -31,31 +31,14 @@ function speakBrowser(name: string) {
   window.speechSynthesis.speak(utterance);
 }
 
-export async function announceGuest(name: string) {
+export function announceGuest(name: string) {
   if (typeof window === "undefined") return;
 
   window.speechSynthesis?.cancel();
   const audio = getPlayer();
   audio.pause();
-
-  try {
-    let src = urlCache.get(name);
-    if (!src) {
-      const res = await fetch("/api/hostess/announce", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      if (!res.ok) throw new Error("tts");
-      const blob = await res.blob();
-      src = URL.createObjectURL(blob);
-      urlCache.set(name, src);
-    }
-    audio.src = src;
-    await audio.play();
-  } catch {
-    speakBrowser(name);
-  }
+  audio.src = `/api/hostess/announce?name=${encodeURIComponent(name.trim())}`;
+  void audio.play().catch(() => speakBrowser(name));
 }
 
 export function pingAlert() {

@@ -43,6 +43,12 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [scanEpoch, setScanEpoch] = useState(0);
 
+  const revealGuest = (next: HostessGuest) => {
+    announceGuest(next.name);
+    setGuest(next);
+    setPeople(next.checkedInCount || next.peopleCount || 1);
+  };
+
   const lookup = async (value: string, opts?: { live?: boolean; signal?: AbortSignal }) => {
     const q = value.trim();
     if (!q) {
@@ -91,11 +97,9 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
       }
 
       if (data.guest) {
-        setGuest(data.guest);
-        setPeople(data.guest.checkedInCount || data.guest.peopleCount || 1);
+        revealGuest(data.guest);
       } else if (list.length === 1) {
-        setGuest(list[0]);
-        setPeople(list[0].checkedInCount || list[0].peopleCount || 1);
+        revealGuest(list[0]);
       } else {
         setGuest(null);
         if (token && list.length === 0) {
@@ -166,8 +170,7 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
     if (matches[0]) {
-      setGuest(matches[0]);
-      setPeople(matches[0].checkedInCount || matches[0].peopleCount || 1);
+      revealGuest(matches[0]);
       return;
     }
     lookup(query);
@@ -205,11 +208,6 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
       setSaving(false);
     }
   };
-
-  useEffect(() => {
-    if (!guest) return;
-    void announceGuest(guest.name);
-  }, [guest?.id]);
 
   const peopleOptions = useMemo(() => {
     const max = Math.max(guest?.peopleCount || 1, 4);
@@ -278,10 +276,7 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
             <li key={item.id}>
               <button
                 type="button"
-                onClick={() => {
-                  setGuest(item);
-                  setPeople(item.checkedInCount || item.peopleCount || 1);
-                }}
+                onClick={() => revealGuest(item)}
               >
                 <GuestAvatar name={item.name} size={40} />
                 <span>

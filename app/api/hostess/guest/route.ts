@@ -3,6 +3,7 @@ import { extractInvitationToken } from "@/lib/invitation-token";
 import { guestTableInclude, serializeHostessGuest } from "@/lib/hostess";
 import { prisma } from "@/lib/prisma";
 import { requireHostess } from "@/lib/staff-auth";
+import { prefetchWelcomeSpeech } from "@/lib/welcome-tts";
 
 function digits(value: string) {
   return value.replace(/\D/g, "");
@@ -45,6 +46,7 @@ export async function GET(request: Request) {
         });
       }
 
+      prefetchWelcomeSpeech(guest.name);
       return NextResponse.json({
         success: true,
         guest: serializeHostessGuest(guest),
@@ -99,9 +101,11 @@ export async function GET(request: Request) {
     }
 
     const serialized = ranked.map(serializeHostessGuest);
+    const selected = live ? null : serialized.length === 1 ? serialized[0] : null;
+    if (selected) prefetchWelcomeSpeech(selected.name);
     return NextResponse.json({
       success: true,
-      guest: live ? null : serialized.length === 1 ? serialized[0] : null,
+      guest: selected,
       guests: serialized,
     });
   } catch {
