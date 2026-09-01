@@ -208,7 +208,7 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
 
   useEffect(() => {
     if (!guest) return;
-    announceGuest(guest.name, formatTableLabel(guest.table?.name));
+    void announceGuest(guest.name);
   }, [guest?.id]);
 
   const peopleOptions = useMemo(() => {

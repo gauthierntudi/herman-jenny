@@ -168,3 +168,7 @@ export const usherCallActionSchema = z.object({
   callId: z.string().min(1),
   action: z.enum(["take", "seat", "cancel"]),
 });
+
+export const hostessAnnounceSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+});

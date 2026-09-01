@@ -1,13 +1,21 @@
-export function announceGuest(name: string, tableName?: string | null) {
+import { welcomeSpeechText } from "@/lib/welcome-speech";
+
+let player: HTMLAudioElement | null = null;
+const urlCache = new Map<string, string>();
+
+function getPlayer() {
+  if (!player) {
+    player = new Audio();
+    player.preload = "auto";
+  }
+  return player;
+}
+
+function speakBrowser(name: string) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
-
-  const table = tableName?.replace(/^tables?\s*/i, "").trim();
-  const text = table ? `${name}. Table ${table}.` : `${name}. Bienvenue.`;
-  const utterance = new SpeechSynthesisUtterance(text);
+  const utterance = new SpeechSynthesisUtterance(welcomeSpeechText(name));
   utterance.lang = "fr-FR";
-  utterance.rate = 0.9;
-  utterance.pitch = 1;
-
+  utterance.rate = 0.92;
   const pickVoice = () => {
     const voices = window.speechSynthesis.getVoices();
     const french =
@@ -15,14 +23,39 @@ export function announceGuest(name: string, tableName?: string | null) {
       voices.find((v) => v.lang.toLowerCase().startsWith("fr"));
     if (french) utterance.voice = french;
   };
-
   pickVoice();
   if (window.speechSynthesis.getVoices().length === 0) {
     window.speechSynthesis.addEventListener("voiceschanged", pickVoice, { once: true });
   }
-
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utterance);
+}
+
+export async function announceGuest(name: string) {
+  if (typeof window === "undefined") return;
+
+  window.speechSynthesis?.cancel();
+  const audio = getPlayer();
+  audio.pause();
+
+  try {
+    let src = urlCache.get(name);
+    if (!src) {
+      const res = await fetch("/api/hostess/announce", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error("tts");
+      const blob = await res.blob();
+      src = URL.createObjectURL(blob);
+      urlCache.set(name, src);
+    }
+    audio.src = src;
+    await audio.play();
+  } catch {
+    speakBrowser(name);
+  }
 }
 
 export function pingAlert() {
