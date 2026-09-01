@@ -24,6 +24,7 @@ export default function HostessApp({ role, initialToken }: Props) {
   const [drinks, setDrinks] = useState<HostessDrink[]>([]);
   const [stats, setStats] = useState({ tables: 0, checkedInGuests: 0, arrivedPeople: 0 });
   const [waitingGuides, setWaitingGuides] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadTables = async () => {
