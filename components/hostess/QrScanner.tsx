@@ -1,8 +1,8 @@
 "use client";
 
 import { Camera, Loader2 } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
-import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
+import { useCallback, useEffect, useRef, useState } from "react";
+import jsQR from "jsqr";
 import { Icon } from "@/components/ui/Icon";
 
 type Props = {
@@ -10,148 +10,203 @@ type Props = {
   onScan: (value: string) => void;
 };
 
-type Status = "starting" | "live" | "error";
+type Status = "idle" | "starting" | "live" | "error";
 
-async function stopScanner(scanner: Html5Qrcode) {
-  try {
-    const state = scanner.getState();
-    if (state === Html5QrcodeScannerState.SCANNING || state === Html5QrcodeScannerState.PAUSED) {
-      await scanner.stop();
-    }
-  } catch {
-    /* already stopped */
-  }
-  try {
-    scanner.clear();
-  } catch {
-    /* already cleared */
-  }
+type BarcodeDetectorLike = {
+  detect: (source: ImageBitmapSource) => Promise<Array<{ rawValue?: string }>>;
+};
+
+let cameraUnlocked = false;
+
+function isStandalone() {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    Boolean((navigator as Navigator & { standalone?: boolean }).standalone)
+  );
 }
 
 function cameraErrorMessage(error: unknown) {
   if (typeof window !== "undefined" && !window.isSecureContext) {
-    return "La caméra est bloquée en HTTP. Ouvrez l’app en HTTPS, ou via localhost sur cet ordinateur.";
+    return "La caméra est bloquée en HTTP. Ouvrez l’app en HTTPS.";
   }
-
   const raw = error instanceof Error ? error.message : String(error || "");
   const text = raw.toLowerCase();
-
   if (text.includes("notallowed") || text.includes("permission") || text.includes("denied")) {
-    return "Autorisez la caméra dans les réglages du navigateur, puis réessayez.";
+    return "Autorisez la caméra dans Réglages, puis réessayez.";
   }
-  if (text.includes("notfound") || text.includes("no camera") || text.includes("requested device not found")) {
+  if (text.includes("notfound") || text.includes("requested device")) {
     return "Aucune caméra n’a été trouvée sur cet appareil.";
   }
-  if (text.includes("notreadable") || text.includes("trackstart") || text.includes("in use")) {
-    return "La caméra est déjà utilisée par une autre app. Fermez-la puis réessayez.";
+  if (text.includes("notreadable") || text.includes("in use") || text.includes("trackstart")) {
+    return "La caméra est déjà utilisée. Fermez les autres apps, puis réessayez.";
   }
-  return "Impossible d’ouvrir la caméra. Autorisez l’accès puis réessayez.";
+  return "Impossible d’ouvrir la caméra. Appuyez pour réessayer.";
 }
 
-async function pickCameraId() {
-  const cameras = await Html5Qrcode.getCameras();
-  if (!cameras.length) throw new Error("no camera");
-  const back = cameras.find((camera) => /back|rear|environment|arrière|world/i.test(camera.label));
-  if (back) return back.id;
-  const mobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
-  return (mobile ? cameras[cameras.length - 1] : cameras[0]).id;
+async function openCamera() {
+  const attempts: MediaStreamConstraints[] = [
+    { audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+    { audio: false, video: { facingMode: "environment" } },
+    { audio: false, video: { facingMode: "user" } },
+    { audio: false, video: true },
+  ];
+
+  let lastError: unknown;
+  for (const constraints of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("no camera");
 }
 
-function prepareVideo(root: HTMLElement | null) {
-  const video = root?.querySelector("video");
-  if (!(video instanceof HTMLVideoElement)) return;
+function attachVideo(video: HTMLVideoElement, stream: MediaStream) {
   video.setAttribute("playsinline", "true");
   video.setAttribute("webkit-playsinline", "true");
-  video.muted = true;
   video.playsInline = true;
-  void video.play().catch(() => {});
+  video.muted = true;
+  video.autoplay = true;
+  video.srcObject = stream;
+  return video.play();
+}
+
+function stopStream(stream: MediaStream | null) {
+  stream?.getTracks().forEach((track) => track.stop());
 }
 
 export default function QrScanner({ active, onScan }: Props) {
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
-  const regionId = `hostess-qr-${useId().replace(/:/g, "")}`;
-  const [status, setStatus] = useState<Status>("starting");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef(0);
+  const handledRef = useRef(false);
+
+  const [status, setStatus] = useState<Status>(cameraUnlocked ? "starting" : "idle");
   const [message, setMessage] = useState("");
-  const [retry, setRetry] = useState(0);
 
-  useEffect(() => {
-    if (!active) return;
+  const stopLoop = useCallback(() => {
+    window.cancelAnimationFrame(rafRef.current);
+    handledRef.current = false;
+    stopStream(streamRef.current);
+    streamRef.current = null;
+    const video = videoRef.current;
+    if (video) video.srcObject = null;
+  }, []);
 
-    let cancelled = false;
-    let scanner: Html5Qrcode | null = null;
+  const scanFrame = useCallback(async (detector: BarcodeDetectorLike | null) => {
+    if (handledRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || video.readyState < 2) return;
+
+    if (detector) {
+      try {
+        const codes = await detector.detect(video);
+        const value = codes.find((code) => code.rawValue)?.rawValue?.trim();
+        if (value) {
+          handledRef.current = true;
+          onScanRef.current(value);
+          return;
+        }
+      } catch {
+        /* fallback to jsQR */
+      }
+    }
+
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return;
+    const width = 480;
+    const height = Math.max(1, Math.round((video.videoHeight / Math.max(video.videoWidth, 1)) * width));
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
+    ctx.drawImage(video, 0, 0, width, height);
+    const image = ctx.getImageData(0, 0, width, height);
+    const result = jsQR(image.data, width, height, { inversionAttempts: "attemptBoth" });
+    if (result?.data) {
+      handledRef.current = true;
+      onScanRef.current(result.data.trim());
+    }
+  }, []);
+
+  const startCamera = useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setStatus("error");
+      setMessage("Ce navigateur ne permet pas d’utiliser la caméra.");
+      return;
+    }
+
     setStatus("starting");
     setMessage("");
+    handledRef.current = false;
 
-    const boot = window.setTimeout(() => {
-      void (async () => {
-        const root = document.getElementById(regionId);
-        if (!root || cancelled) return;
+    try {
+      const stream = await openCamera();
+      streamRef.current = stream;
+      const video = videoRef.current;
+      if (!video) {
+        stopStream(stream);
+        return;
+      }
+      await attachVideo(video, stream);
+      cameraUnlocked = true;
+      setStatus("live");
 
-        const instance = new Html5Qrcode(regionId);
-        scanner = instance;
-        let handled = false;
-
+      const Detector = (window as Window & { BarcodeDetector?: new (opts?: { formats: string[] }) => BarcodeDetectorLike })
+        .BarcodeDetector;
+      let detector: BarcodeDetectorLike | null = null;
+      if (Detector) {
         try {
-          const cameraId = await pickCameraId().catch(() => null);
-          if (cancelled) {
-            await stopScanner(instance);
-            return;
-          }
-
-          const onDecoded = (decodedText: string) => {
-            if (cancelled || !decodedText || handled) return;
-            handled = true;
-            try {
-              scanner?.pause(true);
-            } catch {
-              /* keep going */
-            }
-            onScanRef.current(decodedText.trim());
-          };
-          const config = { fps: 12 };
-
-          try {
-            await instance.start(cameraId || { facingMode: "environment" }, config, onDecoded, () => {});
-          } catch {
-            if (cancelled) {
-              await stopScanner(instance);
-              return;
-            }
-            await stopScanner(instance);
-            const fallback = new Html5Qrcode(regionId);
-            scanner = fallback;
-            await fallback.start({ facingMode: "user" }, config, onDecoded, () => {});
-          }
-
-          if (cancelled) {
-            if (scanner) await stopScanner(scanner);
-            return;
-          }
-
-          prepareVideo(root);
-          setStatus("live");
-        } catch (error) {
-          if (scanner) await stopScanner(scanner);
-          if (cancelled) return;
-          setStatus("error");
-          setMessage(cameraErrorMessage(error));
+          detector = new Detector({ formats: ["qr_code"] });
+        } catch {
+          detector = null;
         }
-      })();
-    }, 120);
+      }
+
+      const tick = () => {
+        void scanFrame(detector).finally(() => {
+          if (!handledRef.current) rafRef.current = window.requestAnimationFrame(tick);
+        });
+      };
+      rafRef.current = window.requestAnimationFrame(tick);
+    } catch (error) {
+      stopStream(streamRef.current);
+      streamRef.current = null;
+      setStatus("error");
+      setMessage(cameraErrorMessage(error));
+    }
+  }, [scanFrame]);
+
+  useEffect(() => {
+    if (!active) {
+      stopLoop();
+      return;
+    }
+
+    handledRef.current = false;
+    if (cameraUnlocked || !isStandalone()) {
+      void startCamera();
+    } else {
+      setStatus("idle");
+    }
 
     return () => {
-      cancelled = true;
-      window.clearTimeout(boot);
-      if (scanner) void stopScanner(scanner);
+      stopLoop();
     };
-  }, [active, regionId, retry]);
+  }, [active, startCamera, stopLoop]);
 
   if (!active) return null;
 
   return (
     <div className="hostess-scanner">
-      <div id={regionId} className="hostess-qr" />
+      <div className="hostess-qr">
+        <video ref={videoRef} muted playsInline autoPlay controls={false} />
+        <canvas ref={canvasRef} className="hostess-qr-canvas" aria-hidden="true" />
+      </div>
       <div className="hostess-scanner-frame" aria-hidden="true">
         <span />
         <span />
@@ -168,8 +223,14 @@ export default function QrScanner({ active, onScan }: Props) {
           ) : (
             <>
               <Icon icon={Camera} size={28} />
-              <p>{message}</p>
-              <button type="button" onClick={() => setRetry((n) => n + 1)}>
+              <p>
+                {status === "error"
+                  ? message
+                  : isStandalone()
+                    ? "Dans l’app, la caméra s’ouvre uniquement si vous appuyez."
+                    : "Appuyez pour activer la caméra."}
+              </p>
+              <button type="button" onClick={() => void startCamera()}>
                 Activer la caméra
               </button>
             </>

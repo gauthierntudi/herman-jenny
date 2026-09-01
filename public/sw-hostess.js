@@ -1,4 +1,4 @@
-const CACHE = "hostess-shell-v1";
+const CACHE = "hostess-shell-v3";
 const PRECACHE = ["/hostess", "/img/icon.png", "/img/logo.png"];
 
 self.addEventListener("install", (event) => {
@@ -26,16 +26,18 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith("/_next/")) return;
+  if (url.pathname.startsWith("/sw-hostess")) return;
 
   event.respondWith(
     fetch(request)
       .then((response) => {
-        if (response.ok) {
+        if (response.ok && request.destination !== "script") {
           const copy = response.clone();
           caches.open(CACHE).then((cache) => cache.put(request, copy));
         }
         return response;
       })
-      .catch(() => caches.match(request).then((cached) => cached || caches.match("/hostess")))
+      .catch(() => caches.match(request))
   );
 });

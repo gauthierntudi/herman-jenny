@@ -375,15 +375,12 @@ body.hostess-page *::after {
   display: block !important;
 }
 
-.hostess-qr canvas {
-  position: absolute !important;
-  inset: 0 !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-.hostess-qr #qr-shaded-region {
-  display: none !important;
+.hostess-qr-canvas {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0.01;
+  pointer-events: none;
 }
 
 .hostess-scanner-frame {

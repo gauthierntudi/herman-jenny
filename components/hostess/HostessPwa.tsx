@@ -7,7 +7,7 @@ export default function HostessPwa() {
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw-hostess.js").catch(() => {});
+      navigator.serviceWorker.register("/sw-hostess.js", { updateViaCache: "none" }).catch(() => {});
     }
 
     const standalone =
