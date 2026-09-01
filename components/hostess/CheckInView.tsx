@@ -154,8 +154,6 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
     const token = extractInvitationToken(value);
     if (!token) {
       setError("QR invalide. Cadrez le QR de l’invitation.");
-      lastScanRef.current = "";
-      setScanEpoch((n) => n + 1);
       return;
     }
     if (token === lastScanRef.current) return;

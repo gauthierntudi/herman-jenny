@@ -4,6 +4,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 import { Icon } from "@/components/ui/Icon";
+import { extractInvitationToken } from "@/lib/invitation-token";
 
 type Props = {
   active: boolean;
@@ -11,10 +12,6 @@ type Props = {
 };
 
 type Status = "idle" | "starting" | "live" | "error";
-
-type BarcodeDetectorLike = {
-  detect: (source: ImageBitmapSource) => Promise<Array<{ rawValue?: string }>>;
-};
 
 let cameraUnlocked = false;
 
@@ -77,60 +74,62 @@ function stopStream(stream: MediaStream | null) {
   stream?.getTracks().forEach((track) => track.stop());
 }
 
+function readQr(image: ImageData) {
+  return jsQR(image.data, image.width, image.height, { inversionAttempts: "attemptBoth" })?.data?.trim() || "";
+}
+
+function decodeVideo(video: HTMLVideoElement, canvas: HTMLCanvasElement) {
+  const sourceWidth = video.videoWidth;
+  const sourceHeight = video.videoHeight;
+  if (!sourceWidth || !sourceHeight) return "";
+
+  const maxSide = 720;
+  const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
+  const width = Math.max(1, Math.round(sourceWidth * scale));
+  const height = Math.max(1, Math.round(sourceHeight * scale));
+
+  if (canvas.width !== width) canvas.width = width;
+  if (canvas.height !== height) canvas.height = height;
+
+  const ctx = canvas.getContext("2d") || canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return "";
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(video, 0, 0, width, height);
+
+  const full = ctx.getImageData(0, 0, width, height);
+  const fromFull = readQr(full);
+  if (fromFull) return fromFull;
+
+  const side = Math.max(160, Math.floor(Math.min(width, height) * 0.72));
+  const x = Math.floor((width - side) / 2);
+  const y = Math.floor((height - side) / 2);
+  const crop = ctx.getImageData(x, y, side, side);
+  return readQr(crop);
+}
+
 export default function QrScanner({ active, onScan }: Props) {
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const rafRef = useRef(0);
+  const timerRef = useRef(0);
+  const busyRef = useRef(false);
   const handledRef = useRef(false);
 
   const [status, setStatus] = useState<Status>(cameraUnlocked ? "starting" : "idle");
   const [message, setMessage] = useState("");
 
   const stopLoop = useCallback(() => {
-    window.cancelAnimationFrame(rafRef.current);
+    window.clearInterval(timerRef.current);
+    timerRef.current = 0;
+    busyRef.current = false;
     handledRef.current = false;
     stopStream(streamRef.current);
     streamRef.current = null;
     const video = videoRef.current;
     if (video) video.srcObject = null;
-  }, []);
-
-  const scanFrame = useCallback(async (detector: BarcodeDetectorLike | null) => {
-    if (handledRef.current) return;
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas || video.readyState < 2) return;
-
-    if (detector) {
-      try {
-        const codes = await detector.detect(video);
-        const value = codes.find((code) => code.rawValue)?.rawValue?.trim();
-        if (value) {
-          handledRef.current = true;
-          onScanRef.current(value);
-          return;
-        }
-      } catch {
-        /* fallback to jsQR */
-      }
-    }
-
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return;
-    const width = 480;
-    const height = Math.max(1, Math.round((video.videoHeight / Math.max(video.videoWidth, 1)) * width));
-    if (canvas.width !== width) canvas.width = width;
-    if (canvas.height !== height) canvas.height = height;
-    ctx.drawImage(video, 0, 0, width, height);
-    const image = ctx.getImageData(0, 0, width, height);
-    const result = jsQR(image.data, width, height, { inversionAttempts: "attemptBoth" });
-    if (result?.data) {
-      handledRef.current = true;
-      onScanRef.current(result.data.trim());
-    }
   }, []);
 
   const startCamera = useCallback(async () => {
@@ -140,15 +139,18 @@ export default function QrScanner({ active, onScan }: Props) {
       return;
     }
 
+    window.clearInterval(timerRef.current);
     setStatus("starting");
     setMessage("");
     handledRef.current = false;
+    busyRef.current = false;
 
     try {
       const stream = await openCamera();
       streamRef.current = stream;
       const video = videoRef.current;
-      if (!video) {
+      const canvas = canvasRef.current;
+      if (!video || !canvas) {
         stopStream(stream);
         return;
       }
@@ -156,30 +158,27 @@ export default function QrScanner({ active, onScan }: Props) {
       cameraUnlocked = true;
       setStatus("live");
 
-      const Detector = (window as Window & { BarcodeDetector?: new (opts?: { formats: string[] }) => BarcodeDetectorLike })
-        .BarcodeDetector;
-      let detector: BarcodeDetectorLike | null = null;
-      if (Detector) {
+      timerRef.current = window.setInterval(() => {
+        if (handledRef.current || busyRef.current) return;
+        if (video.readyState < 2) return;
+        busyRef.current = true;
         try {
-          detector = new Detector({ formats: ["qr_code"] });
-        } catch {
-          detector = null;
+          const value = decodeVideo(video, canvas);
+          if (value && extractInvitationToken(value)) {
+            handledRef.current = true;
+            onScanRef.current(value);
+          }
+        } finally {
+          busyRef.current = false;
         }
-      }
-
-      const tick = () => {
-        void scanFrame(detector).finally(() => {
-          if (!handledRef.current) rafRef.current = window.requestAnimationFrame(tick);
-        });
-      };
-      rafRef.current = window.requestAnimationFrame(tick);
+      }, 80);
     } catch (error) {
       stopStream(streamRef.current);
       streamRef.current = null;
       setStatus("error");
       setMessage(cameraErrorMessage(error));
     }
-  }, [scanFrame]);
+  }, []);
 
   useEffect(() => {
     if (!active) {

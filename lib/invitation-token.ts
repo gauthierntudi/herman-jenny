@@ -1,6 +1,11 @@
 export function extractInvitationToken(raw: string): string | null {
-  const trimmed = raw.trim();
+  const trimmed = raw.trim().replace(/[\u200B-\u200D\uFEFF]/g, "");
   if (!trimmed) return null;
+
+  const embedded = trimmed.match(/\/i\/([^/?#\s]+)/i);
+  if (embedded?.[1]) {
+    return decodeURIComponent(embedded[1]).replace(/\.pdf$/i, "").trim();
+  }
 
   const tryPath = (pathname: string) => {
     const match = pathname.match(/\/i\/([^/?#]+)/i);

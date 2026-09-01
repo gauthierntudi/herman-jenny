@@ -1,4 +1,4 @@
-const CACHE = "hostess-shell-v3";
+const CACHE = "hostess-shell-v4";
 const PRECACHE = ["/hostess", "/img/icon.png", "/img/logo.png"];
 
 self.addEventListener("install", (event) => {
