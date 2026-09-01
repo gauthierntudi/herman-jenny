@@ -587,6 +587,41 @@ body.hostess-page *::after {
   align-items: center;
 }
 
+.hostess-ticket-table {
+  margin: 18px 0 4px;
+  padding: 16px 8px 10px;
+  text-align: center;
+  border-radius: 20px;
+  background: rgba(254, 210, 2, 0.1);
+  border: 1px solid rgba(254, 210, 2, 0.28);
+}
+
+.hostess-ticket-table em {
+  display: block;
+  margin: 0 0 2px;
+  font-style: normal;
+  font-size: 12px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--hj-gold);
+}
+
+.hostess-ticket-table strong {
+  display: block;
+  font-family: "GT Super", Georgia, serif;
+  font-size: clamp(72px, 24vw, 112px);
+  font-weight: 400;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: var(--hj-gold);
+}
+
+.hostess-ticket-table strong.is-text {
+  font-size: clamp(28px, 8vw, 40px);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
 .hostess-ticket h2 {
   margin: 4px 0 6px;
   font-family: "GT Super", Georgia, serif;

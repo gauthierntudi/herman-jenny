@@ -15,6 +15,7 @@ import QrScanner from "@/components/hostess/QrScanner";
 import { Icon } from "@/components/ui/Icon";
 import { announceGuest } from "@/lib/announce";
 import { extractInvitationToken } from "@/lib/invitation-token";
+import { formatTableLabel, parseTableNumber } from "@/lib/table-label";
 import type { HostessGuest } from "@/lib/hostess";
 
 type Props = {
@@ -207,13 +208,15 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
 
   useEffect(() => {
     if (!guest) return;
-    announceGuest(guest.name, guest.table?.name);
+    announceGuest(guest.name, formatTableLabel(guest.table?.name));
   }, [guest?.id]);
 
   const peopleOptions = useMemo(() => {
     const max = Math.max(guest?.peopleCount || 1, 4);
     return Array.from({ length: max }, (_, i) => i + 1);
   }, [guest]);
+
+  const tableNumber = parseTableNumber(guest?.table?.name);
 
   return (
     <div className={`hostess-checkin${mode === "scan" && !guest ? " is-scanning" : ""}`}>
@@ -283,7 +286,7 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
                 <GuestAvatar name={item.name} size={40} />
                 <span>
                   <strong>{item.name}</strong>
-                  <em>{item.table ? item.table.name : "Sans table"}</em>
+                  <em>{item.table ? formatTableLabel(item.table.name) : "Sans table"}</em>
                 </span>
               </button>
             </li>
@@ -302,10 +305,22 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
               <p className="hostess-ticket-meta">
                 <Icon icon={Users} size={14} />
                 {guest.peopleCount} pers.
-                {guest.table ? ` · ${guest.table.name}` : " · Pas de table"}
               </p>
             </div>
           </div>
+
+          {tableNumber ? (
+            <p className="hostess-ticket-table">
+              <em>Table</em>
+              <strong>{tableNumber}</strong>
+            </p>
+          ) : guest.table ? (
+            <p className="hostess-ticket-table">
+              <strong className="is-text">{formatTableLabel(guest.table.name)}</strong>
+            </p>
+          ) : (
+            <p className="hostess-warn">Cet invité n’a pas encore de table assignée.</p>
+          )}
 
           {guest.checkedInAt ? (
             <p className="hostess-in-badge">
@@ -331,10 +346,6 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
             </div>
           )}
 
-          {!guest.table && (
-            <p className="hostess-warn">Cet invité n’a pas encore de table assignée.</p>
-          )}
-
           <div className="hostess-ticket-actions">
             {guest.checkedInAt ? (
               <button
@@ -356,9 +367,6 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
                 {saving ? <Icon icon={Loader2} spin size={18} /> : <Icon icon={Check} size={18} />}
                 Confirmer l’arrivée
               </button>
-            )}
-            {guest.table && (
-              <p className="hostess-ticket-meta">Table : {guest.table.name}</p>
             )}
             <button
               type="button"
