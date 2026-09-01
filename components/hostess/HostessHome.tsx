@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Footprints, QrCode, UtensilsCrossed, Wine } from "lucide-react";
+import { Bell, Footprints, Loader2, QrCode, RefreshCw, UtensilsCrossed, Wine } from "lucide-react";
 import GuestAvatar from "@/components/admin/GuestAvatar";
 import { Icon } from "@/components/ui/Icon";
 import type { HostessTable } from "@/components/hostess/TablesDrinksView";
@@ -12,6 +12,8 @@ type Props = {
   tables: HostessTable[];
   waitingGuides?: number;
   pendingOrders?: number;
+  refreshing?: boolean;
+  onRefresh?: () => void;
   onOpen: (station: Station) => void;
 };
 
@@ -19,7 +21,15 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function HostessHome({ stats, tables, waitingGuides = 0, pendingOrders = 0, onOpen }: Props) {
+export default function HostessHome({
+  stats,
+  tables,
+  waitingGuides = 0,
+  pendingOrders = 0,
+  refreshing = false,
+  onRefresh,
+  onOpen,
+}: Props) {
   const recent = tables
     .flatMap((table) =>
       table.guests
@@ -31,6 +41,10 @@ export default function HostessHome({ stats, tables, waitingGuides = 0, pendingO
 
   return (
     <div className="hostess-home">
+      <button type="button" className="hostess-refresh" onClick={onRefresh} disabled={refreshing || !onRefresh}>
+        <Icon icon={refreshing ? Loader2 : RefreshCw} spin={refreshing} size={16} />
+        Actualiser
+      </button>
       <div className="hostess-home-stats">
         <div>
           <strong>{stats.arrivedPeople}</strong>

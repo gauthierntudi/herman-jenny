@@ -9,7 +9,8 @@ export function extractInvitationToken(raw: string): string | null {
   };
 
   try {
-    const url = new URL(trimmed);
+    const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const url = new URL(withScheme);
     const fromPath = tryPath(url.pathname);
     if (fromPath) return fromPath;
   } catch {

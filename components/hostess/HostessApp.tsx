@@ -1,7 +1,6 @@
 "use client";
 
-import { Footprints, House, LogOut, QrCode, UtensilsCrossed, Wine } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { Footprints, House, QrCode, UtensilsCrossed, Wine } from "lucide-react";
 import { useEffect, useState } from "react";
 import CheckInView from "@/components/hostess/CheckInView";
 import DrinkManagerView from "@/components/hostess/DrinkManagerView";
@@ -25,7 +24,7 @@ export default function HostessApp({ role, initialToken }: Props) {
   const [drinks, setDrinks] = useState<HostessDrink[]>([]);
   const [stats, setStats] = useState({ tables: 0, checkedInGuests: 0, arrivedPeople: 0 });
   const [waitingGuides, setWaitingGuides] = useState(0);
-  const [pendingOrders, setPendingOrders] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadTables = async () => {
     try {
@@ -52,6 +51,15 @@ export default function HostessApp({ role, initialToken }: Props) {
     }
   };
 
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([loadTables(), loadBadges()]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     document.body.classList.add("hostess-page");
     loadTables();
@@ -75,17 +83,13 @@ export default function HostessApp({ role, initialToken }: Props) {
             <p className="hostess-kicker">Jennifer &amp; Herman</p>
             <h1>Protocole</h1>
           </div>
-          <div className="hostess-header-actions">
-            {role === "admin" && (
+          {role === "admin" && (
+            <div className="hostess-header-actions">
               <a href="/admin" className="hostess-signout">
                 Admin
               </a>
-            )}
-            <button type="button" className="hostess-signout" onClick={() => signOut({ callbackUrl: "/hostess/login" })}>
-              <Icon icon={LogOut} size={16} />
-              Quitter
-            </button>
-          </div>
+            </div>
+          )}
         </header>
       )}
 
@@ -96,6 +100,8 @@ export default function HostessApp({ role, initialToken }: Props) {
             tables={tables}
             waitingGuides={waitingGuides}
             pendingOrders={pendingOrders}
+            refreshing={refreshing}
+            onRefresh={refresh}
             onOpen={setTab}
           />
         )}

@@ -14,6 +14,7 @@ import GuestAvatar from "@/components/admin/GuestAvatar";
 import QrScanner from "@/components/hostess/QrScanner";
 import { Icon } from "@/components/ui/Icon";
 import { announceGuest } from "@/lib/announce";
+import { extractInvitationToken } from "@/lib/invitation-token";
 import type { HostessGuest } from "@/lib/hostess";
 
 type Props = {
@@ -36,9 +37,10 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
   const [people, setPeople] = useState(1);
   const [saving, setSaving] = useState(false);
   const [stamped, setStamped] = useState(false);
-  const [lastScan, setLastScan] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const lastScanRef = useRef("");
   const lookupSeq = useRef(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [scanEpoch, setScanEpoch] = useState(0);
 
   const lookup = async (value: string, opts?: { live?: boolean; signal?: AbortSignal }) => {
     const q = value.trim();
@@ -58,14 +60,20 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
     setError("");
 
     try {
+      const token = extractInvitationToken(q);
       const params = new URLSearchParams();
-      params.set("q", q);
+      if (token) params.set("token", token);
+      else params.set("q", q);
       if (opts?.live) params.set("live", "1");
       const res = await fetch(`/api/hostess/guest?${params}`, { signal: opts?.signal });
       const data = await res.json();
       if (seq !== lookupSeq.current) return;
 
       if (!data.success) {
+        if (!opts?.live) {
+          lastScanRef.current = "";
+          setScanEpoch((n) => n + 1);
+        }
         setGuest(null);
         setMatches([]);
         setError(data.message || "Invitation introuvable.");
@@ -84,12 +92,22 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
       if (data.guest) {
         setGuest(data.guest);
         setPeople(data.guest.checkedInCount || data.guest.peopleCount || 1);
+      } else if (list.length === 1) {
+        setGuest(list[0]);
+        setPeople(list[0].checkedInCount || list[0].peopleCount || 1);
       } else {
         setGuest(null);
+        if (token && list.length === 0) {
+          lastScanRef.current = "";
+          setScanEpoch((n) => n + 1);
+          setError("Invitation introuvable. Vérifiez le QR code.");
+        }
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       if (seq !== lookupSeq.current) return;
+      lastScanRef.current = "";
+      setScanEpoch((n) => n + 1);
       setGuest(null);
       setMatches([]);
       setError("Connexion impossible. Réessayez.");
@@ -133,11 +151,17 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
   }, [query, mode, guest]);
 
   const onScan = (value: string) => {
-    if (value === lastScan) return;
-    setLastScan(value);
-    setMode("search");
-    setQuery(value);
-    lookup(value);
+    const token = extractInvitationToken(value);
+    if (!token) {
+      setError("QR invalide. Cadrez le QR de l’invitation.");
+      lastScanRef.current = "";
+      setScanEpoch((n) => n + 1);
+      return;
+    }
+    if (token === lastScanRef.current) return;
+    lastScanRef.current = token;
+    setError("");
+    lookup(token);
   };
 
   const onSearch = (e: FormEvent) => {
@@ -218,7 +242,7 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
       </div>
 
       {mode === "scan" ? (
-        <QrScanner active={mode === "scan" && !guest} onScan={onScan} />
+        <QrScanner key={scanEpoch} active={mode === "scan" && !guest} onScan={onScan} />
       ) : (
         <form className="hostess-search" onSubmit={onSearch}>
           <Icon icon={Search} size={18} />
@@ -239,10 +263,10 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
         </form>
       )}
 
-      {loading && !matches.length && query.trim().length >= 2 && !guest && (
+      {loading && !guest && (
         <p className="hostess-status">
           <Icon icon={Loader2} spin size={16} />
-          Recherche…
+          {mode === "scan" ? "Invitation lue…" : "Recherche…"}
         </p>
       )}
       {error && !matches.length && <p className="hostess-error">{error}</p>}
@@ -345,7 +369,9 @@ export default function CheckInView({ initialToken, onCheckinChange }: Props) {
                 setGuest(null);
                 setMatches([]);
                 setQuery("");
-                setLastScan("");
+                lastScanRef.current = "";
+                setScanEpoch((n) => n + 1);
+                setError("");
                 setMode("scan");
               }}
             >

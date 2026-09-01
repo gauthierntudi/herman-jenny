@@ -90,6 +90,7 @@ export default function QrScanner({ active, onScan }: Props) {
 
         const instance = new Html5Qrcode(regionId);
         scanner = instance;
+        let handled = false;
 
         try {
           const cameraId = await pickCameraId().catch(() => null);
@@ -99,17 +100,16 @@ export default function QrScanner({ active, onScan }: Props) {
           }
 
           const onDecoded = (decodedText: string) => {
-            if (cancelled || !decodedText) return;
-            onScanRef.current(decodedText);
+            if (cancelled || !decodedText || handled) return;
+            handled = true;
+            try {
+              scanner?.pause(true);
+            } catch {
+              /* keep going */
+            }
+            onScanRef.current(decodedText.trim());
           };
-          const config = {
-            fps: 10,
-            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-              const side = Math.max(viewfinderWidth, viewfinderHeight, 1);
-              const size = Math.floor(Math.min(side, 640) * 0.72);
-              return { width: Math.max(220, size), height: Math.max(220, size) };
-            },
-          };
+          const config = { fps: 12 };
 
           try {
             await instance.start(cameraId || { facingMode: "environment" }, config, onDecoded, () => {});
