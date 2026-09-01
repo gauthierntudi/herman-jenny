@@ -1170,17 +1170,34 @@ body.hostess-page *::after {
   font-size: 12px;
 }
 
+.hostess-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .hostess-edit-tables {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 12px;
+  margin: 0;
   border: 0;
   background: transparent;
   color: var(--hj-gold);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
+}
+
+.hostess-reset-tables {
+  color: var(--hj-muted);
+}
+
+.hostess-picker .hostess-reset-tables {
+  margin: -8px 0 12px;
 }
 
 .hostess-order-list,

@@ -1,10 +1,10 @@
 "use client";
 
-import { Check, Loader2, Minus, Plus, Settings2 } from "lucide-react";
+import { Check, Loader2, Minus, Plus, RotateCcw, Settings2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import GuestAvatar from "@/components/admin/GuestAvatar";
 import { Icon } from "@/components/ui/Icon";
-import { getSessionTableIds, setSessionTableIds } from "@/lib/protocol-session";
+import { clearSessionTableIds, getSessionTableIds, setSessionTableIds } from "@/lib/protocol-session";
 import type { HostessDrink, HostessTable } from "@/components/hostess/TablesDrinksView";
 
 type Props = {
@@ -38,6 +38,15 @@ export default function ProtocolTablesView({ tables, drinks }: Props) {
   const saveSelection = () => {
     setSessionTableIds(selectedIds);
     setPicking(selectedIds.length === 0);
+  };
+
+  const resetSelection = () => {
+    clearSessionTableIds();
+    setSelectedIds([]);
+    setOpenId(null);
+    setQty({});
+    setSent("");
+    setPicking(true);
   };
 
   const keyFor = (tableId: string, drinkId: string) => `${tableId}:${drinkId}`;
@@ -89,6 +98,12 @@ export default function ProtocolTablesView({ tables, drinks }: Props) {
       <div className="hostess-picker">
         <h2>Tables de votre session</h2>
         <p>Cochez uniquement les tables que vous gérez ce soir.</p>
+        {selectedIds.length > 0 && (
+          <button type="button" className="hostess-edit-tables hostess-reset-tables" onClick={() => setSelectedIds([])}>
+            <Icon icon={RotateCcw} size={16} />
+            Tout décocher
+          </button>
+        )}
         <ul>
           {tables.map((table) => {
             const on = selectedIds.includes(table.id);
@@ -110,6 +125,10 @@ export default function ProtocolTablesView({ tables, drinks }: Props) {
         <button type="button" className="hostess-btn hostess-btn-gold" disabled={selectedIds.length === 0} onClick={saveSelection}>
           Continuer ({selectedIds.length})
         </button>
+        <button type="button" className="hostess-btn hostess-btn-ghost" onClick={resetSelection}>
+          <Icon icon={RotateCcw} size={16} />
+          Réinitialiser la sélection
+        </button>
       </div>
     );
   }
@@ -127,10 +146,16 @@ export default function ProtocolTablesView({ tables, drinks }: Props) {
 
   return (
     <div className="hostess-protocol">
-      <button type="button" className="hostess-edit-tables" onClick={() => setPicking(true)}>
-        <Icon icon={Settings2} size={16} />
-        Modifier mes tables ({myTables.length})
-      </button>
+      <div className="hostess-table-toolbar">
+        <button type="button" className="hostess-edit-tables" onClick={() => setPicking(true)}>
+          <Icon icon={Settings2} size={16} />
+          Modifier mes tables ({myTables.length})
+        </button>
+        <button type="button" className="hostess-edit-tables hostess-reset-tables" onClick={resetSelection}>
+          <Icon icon={RotateCcw} size={16} />
+          Réinitialiser
+        </button>
+      </div>
       {sent && <p className="hostess-status">{sent}</p>}
 
       <ul className="hostess-table-list">

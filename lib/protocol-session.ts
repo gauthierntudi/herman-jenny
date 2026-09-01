@@ -14,3 +14,7 @@ export function getSessionTableIds(): string[] {
 export function setSessionTableIds(ids: string[]) {
   localStorage.setItem(KEY, JSON.stringify([...new Set(ids)]));
 }
+
+export function clearSessionTableIds() {
+  localStorage.removeItem(KEY);
+}
